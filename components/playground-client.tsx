@@ -194,7 +194,7 @@ export function PlaygroundClient({
                         </div>
                     </ResizablePanel>
 
-                    <ResizableHandle withHandle />
+                    <ResizableHandle />
 
                     {/* COLUMN 2: Chat Simulation */}
                     <ResizablePanel defaultSize={35} minSize={20}>
