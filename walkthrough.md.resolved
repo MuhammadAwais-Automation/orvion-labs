@@ -1,0 +1,257 @@
+# Account & Billing Page Implementation
+
+## Overview
+
+Created a modern SaaS account management page at `/account` displaying user profile, subscription tier, and credit usage with interactive UI components.
+
+---
+
+## Page Features
+
+### 1. Profile & Security Card
+
+**Purpose:** Display user identity and security settings
+
+**Components:**
+- **Avatar**: Colorful gradient circle with user initials (first 2 letters of email)
+- **Email Address**: Read-only input showing user's email
+- **User ID**: Copyable UUID with copy button
+- **Sign Out**: Red-themed button using existing [signOut](file:///g:/Prompt%20Guard/app/login/actions.ts#107-113) action
+
+**Design:**
+```tsx
+<div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500">
+  <span className="text-3xl font-bold">{initials}</span>
+</div>
+```
+
+---
+
+### 2. Subscription & Usage Card
+
+**Purpose:** Show tier, credit balance, and upgrade options
+
+**Key Elements:**
+
+#### Tier Badge
+- **Free**: Cyan badge with Sparkles icon
+- **Pro**: Gold gradient badge with Crown icon
+
+```tsx
+{tier === 'pro' ? (
+  <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500">
+    <Crown /> Pro Plan
+  </Badge>
+) : (
+  <Badge className="border-cyan-500/30 bg-cyan-500/10">
+    <Sparkles /> Free Plan
+  </Badge>
+)}
+```
+
+#### Credit Balance Display
+- Large gradient typography (5xl font)
+- Shows current credits / total limit
+- Visual progress bar
+- Percentage remaining indicator
+
+```tsx
+<span className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+  {credits.toLocaleString()}
+</span>
+```
+
+#### Progress Bar
+- Custom Progress component with gradient fill
+- Calculates usage: [(credits / creditLimit) * 100](file:///g:/Prompt%20Guard/app/login/actions.ts#7-41)
+- Color-coded (cyan to purple gradient)
+- Shows percentage and tier limits
+
+#### Action Buttons
+- **Upgrade to Pro**: (Free users only) Gradient button
+- **View Billing History**: Outline button (placeholder)
+
+#### Pro Benefits (Free users)
+- 100,000 credits vs 1,000
+- 100 test cases vs 5
+- Priority support
+- Advanced analytics
+
+---
+
+## Files Created/Modified
+
+### New Files
+
+#### [app/account/page.tsx](file:///g:/Prompt%20Guard/app/account/page.tsx)
+```typescript
+// Server-side data fetching
+const { data: { user } } = await supabase.auth.getUser()
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', user.id)
+  .single()
+
+// Calculate limits
+const creditLimit = tier === 'pro' ? 100000 : 1000
+const usagePercentage = (credits / creditLimit) * 100
+```
+
+**Features:**
+- Redirects to `/login` if not authenticated
+- Fetches user + profile data server-side
+- Responsive 2-column grid (stacks on mobile)
+- Dark theme (`bg-[#050505]`)
+- Uses Shadcn UI components
+
+#### [components/ui/progress.tsx](file:///g:/Prompt%20Guard/components/ui/progress.tsx)
+```typescript
+// Radix UI Progress component
+<ProgressPrimitive.Indicator
+  className="bg-gradient-to-r from-cyan-500 to-purple-500"
+  style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+/>
+```
+
+### Modified Files
+
+#### [components/navbar.tsx](file:///g:/Prompt%20Guard/components/navbar.tsx)
+Added "Account" link next to credits badge:
+```tsx
+<Link href="/account" className="text-sm text-slate-400 hover:text-white">
+  Account
+</Link>
+```
+
+---
+
+## UI Layout
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Account & Billing                                  │
+│  Manage your profile, subscription, and usage       │
+└─────────────────────────────────────────────────────┘
+
+┌──────────────────────────┐  ┌──────────────────────┐
+│ Personal Information     │  │ Plan & Credits       │
+│                          │  │                      │
+│       [Avatar AB]        │  │ ✨ Free Plan         │
+│                          │  │                      │
+│ Email: user@example.com  │  │ 450 / 1,000         │
+│ User ID: uuid... [Copy]  │  │ ████░░░░  45%       │
+│                          │  │                      │
+│ [Sign Out]               │  │ [Upgrade to Pro]    │
+└──────────────────────────┘  └──────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│ Usage Guidelines                                    │
+│ • Credits consumed per test run (1 token = 1 credit)│
+│ • Free: 1,000 credits, 5 test cases                │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Responsive Design
+
+**Desktop (lg+):**
+- 2-column grid
+- Cards side-by-side
+- Full email visible
+
+**Mobile:**
+- Single column stack
+- Email hidden on small screens
+- Maintains all functionality
+
+---
+
+## Components Used
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `Card` | Shadcn UI | Container cards |
+| `Button` | Shadcn UI | Actions (sign out, upgrade) |
+| `Input` | Shadcn UI | Email/ID display |
+| `Badge` | Shadcn UI | Tier indicator |
+| `Progress` | Custom | Credit usage bar |
+| Icons | Lucide React | Visual elements |
+
+---
+
+## Navigation
+
+**Access Points:**
+1. Click "Account" link in navbar (next to credits badge)
+2. Direct URL: `/account`
+
+**Navbar Position:**
+```
+[Logo] ... [💳 Credits] [Account] [Email] [Sign Out]
+```
+
+---
+
+## Key Calculations
+
+```typescript
+// Credit limits by tier
+const creditLimit = tier === 'pro' ? 100000 : 1000
+
+// Usage percentage
+const usagePercentage = (credits / creditLimit) * 100
+
+// User initials for avatar
+const initials = email.slice(0, 2).toUpperCase()
+```
+
+---
+
+## Future Enhancements
+
+### Planned Features
+- [ ] Actual billing integration (Stripe)
+- [ ] Credit purchase flow
+- [ ] Billing history with invoices
+- [ ] Plan upgrade checkout
+- [ ] Usage analytics charts
+- [ ] Email notification settings
+- [ ] Password change form
+- [ ] 2FA setup
+
+### Potential Additions
+- Credit usage over time graph
+- Recent activity log
+- Team member management (for future teams feature)
+- API key generation
+- Webhook configuration
+
+---
+
+## Testing Checklist
+
+- [x] Page loads for authenticated users
+- [x] Redirects to login for unauthenticated
+- [x] Avatar shows correct initials
+- [x] Email displays correctly
+- [x] User ID is copyable
+- [x] Sign out button works
+- [x] Tier badge shows correct plan
+- [x] Credit balance displays
+- [x] Progress bar calculates correctly
+- [x] Responsive on mobile
+- [x] Navbar link navigates to page
+
+---
+
+## Summary
+
+✅ **Modern account page** with profile and subscription management  
+✅ **Visual credit tracking** via progress bar  
+✅ **Tier-based UI** with upgrade CTAs for free users  
+✅ **Responsive design** that works on all screen sizes  
+✅ **Integrated navigation** via navbar link
+
+The page serves as a central hub for users to manage their account and understand their usage! 🎉
