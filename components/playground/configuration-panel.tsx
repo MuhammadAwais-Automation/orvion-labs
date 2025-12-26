@@ -225,6 +225,7 @@ export function ConfigurationPanel({
                         </div>
                     </div>
                 </div>
+            )}
 
             {/* Version Control Footer */}
             <div className="flex-shrink-0 border-t border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#08080a]">
