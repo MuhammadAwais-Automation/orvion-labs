@@ -1,5 +1,6 @@
 'use client'
 
+import { motion, AnimatePresence } from 'framer-motion'
 import { Slider } from '@/components/ui/slider'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -112,32 +113,77 @@ export function ConfigurationPanel({
             isCollapsed && "bg-slate-50 dark:bg-black"
         )}>
             {/* Header */}
-            <div className="flex-shrink-0 h-14 flex items-center justify-between px-4 border-b border-slate-200 dark:border-white/[0.06]">
-                {isCollapsed ? (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onToggleCollapse}
-                        className="h-8 w-8 p-0 mx-auto text-slate-500 hover:text-white hover:bg-white/5"
-                    >
-                        <PanelRightOpen className="w-4 h-4" />
-                    </Button>
-                ) : (
-                    <>
-                        <div className="flex items-center gap-2">
-                            <Settings2 className="w-4 h-4 text-cyan-500" />
-                            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Configuration</span>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={onToggleCollapse}
-                            className="h-8 w-8 p-0 text-slate-500 hover:text-white hover:bg-white/5"
+            <div className={cn(
+                "flex-shrink-0 h-14 flex items-center px-4 border-b border-slate-200 dark:border-white/[0.06]",
+                isCollapsed ? "border-0 h-0 p-0" : "justify-between"
+            )}>
+                <AnimatePresence>
+                    {isCollapsed ? (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="fixed right-6 top-20 z-[50]"
                         >
-                            <PanelRightClose className="w-4 h-4" />
-                        </Button>
-                    </>
-                )}
+                            <motion.button
+                                onClick={onToggleCollapse}
+                                whileHover="hover"
+                                initial="initial"
+                                className="flex items-center gap-2 group relative"
+                            >
+                                <motion.div
+                                    className="h-10 w-10 rounded-full bg-white dark:bg-[#141416] border border-slate-200 dark:border-white/[0.1] shadow-xl flex items-center justify-center text-cyan-500 overflow-hidden relative z-10"
+                                    variants={{
+                                        initial: { width: 40, borderRadius: "50%" },
+                                        hover: { width: 160, borderRadius: "20px" }
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                >
+                                    <div className="flex items-center gap-3 px-3 w-[160px]">
+                                        <Settings2 className="w-4 h-4 flex-shrink-0" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">
+                                            Configuration
+                                        </span>
+                                    </div>
+
+                                    {/* Glass reflection */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+                                </motion.div>
+
+                                {/* Notification dot if there are unsaved changes */}
+                                {hasUnsavedChanges && (
+                                    <motion.div
+                                        layoutId="config-dot"
+                                        className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-amber-500 rounded-full border-2 border-white dark:border-[#09090b] z-20"
+                                    />
+                                )}
+                            </motion.button>
+                        </motion.div>
+                    ) : (
+                        <>
+                            <div className="flex items-center gap-2">
+                                <div className="relative">
+                                    <Settings2 className="w-4 h-4 text-cyan-500" />
+                                    {hasUnsavedChanges && (
+                                        <motion.div
+                                            layoutId="config-dot"
+                                            className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full"
+                                        />
+                                    )}
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Configuration</span>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={onToggleCollapse}
+                                className="h-8 w-8 p-0 text-slate-500 hover:text-white hover:bg-white/5 rounded-xl"
+                            >
+                                <PanelRightClose className="w-4 h-4" />
+                            </Button>
+                        </>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Scrollable Content */}
@@ -187,22 +233,22 @@ export function ConfigurationPanel({
 
                         {/* Variables */}
                         <AccordionItem value="variables" className="border-slate-200 dark:border-white/[0.04]">
-                            <AccordionTrigger className="hover:no-underline py-4">
-                                <div className="flex items-center justify-between w-full pr-4">
+                            <div className="flex items-center justify-between w-full pr-4 group/var">
+                                <AccordionTrigger className="flex-1 hover:no-underline py-4">
                                     <div className="flex items-center gap-2">
                                         <Braces className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500" />
                                         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Variables</span>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={addVariable}
-                                        className="h-5 px-1.5 text-[9px] text-cyan-600 dark:text-cyan-500 hover:text-cyan-700 dark:hover:text-cyan-400 hover:bg-cyan-500/10"
-                                    >
-                                        <Plus className="w-3 h-3 mr-1" /> Add
-                                    </Button>
-                                </div>
-                            </AccordionTrigger>
+                                </AccordionTrigger>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={addVariable}
+                                    className="h-5 px-1.5 text-[9px] text-cyan-600 dark:text-cyan-500 hover:text-cyan-700 dark:hover:text-cyan-400 hover:bg-cyan-500/10 z-10"
+                                >
+                                    <Plus className="w-3 h-3 mr-1" /> Add
+                                </Button>
+                            </div>
                             <AccordionContent className="pb-4 space-y-2">
                                 {Object.keys(variables).length === 0 ? (
                                     <p className="text-[10px] text-slate-500 dark:text-slate-600 italic px-1">

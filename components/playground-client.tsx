@@ -178,22 +178,12 @@ export function PlaygroundClient({
                             </div>
 
                             {/* Editor Area */}
-                            <div className="flex-1 relative group">
-                                {/* Line Numbers */}
-                                <div
-                                    className="absolute left-0 top-0 bottom-0 w-12 bg-slate-100 dark:bg-[#08080a] border-r border-slate-200 dark:border-white/[0.04] py-4 flex flex-col items-end pr-3 text-slate-400 dark:text-slate-700 text-[11px] leading-relaxed overflow-hidden select-none"
-                                    style={{ fontFamily: 'var(--font-mono)' }}
-                                >
-                                    {Array.from({ length: systemPrompt.split('\n').length || 1 }).map((_, i) => (
-                                        <div key={i} className="h-[1.625rem]">{i + 1}</div>
-                                    ))}
-                                </div>
-
+                            <div className="flex-1 relative group bg-white dark:bg-[#08080a]">
                                 <Textarea
                                     value={systemPrompt}
                                     onChange={(e) => setSystemPrompt(e.target.value)}
                                     placeholder="Define your AI assistant's behavior here..."
-                                    className="w-full h-full pl-16 pr-5 py-4 resize-none bg-transparent border-0 text-slate-800 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:ring-0 focus-visible:ring-0 text-[13px] leading-relaxed"
+                                    className="w-full h-full px-5 py-4 resize-none bg-transparent border-0 text-slate-800 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:ring-0 focus-visible:ring-0 text-[13px] leading-relaxed"
                                     style={{
                                         boxShadow: 'none',
                                         fontFamily: 'var(--font-mono)'
@@ -324,8 +314,8 @@ export function PlaygroundClient({
             {/* COLUMN 3: Configuration Panel - Fixed Width & Collapsible */}
             <div
                 className={cn(
-                    "flex-shrink-0 border-l border-slate-200 dark:border-white/[0.06] transition-all duration-300 ease-in-out bg-slate-50 dark:bg-[#0a0a0b] overflow-hidden flex flex-col",
-                    isConfigCollapsed ? "w-[48px]" : "w-[300px]"
+                    "flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-50 dark:bg-[#0a0a0b] flex flex-col relative",
+                    isConfigCollapsed ? "w-0" : "w-[300px] border-l border-slate-200 dark:border-white/[0.06]"
                 )}
             >
                 <ConfigurationPanel

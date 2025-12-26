@@ -11,6 +11,7 @@ import { useAuthForm } from "@/hooks/use-auth-form"
 // Components
 import { Button } from "@/components/ui/button"
 import { AuthVisuals } from "./auth/auth-visuals"
+import { AuthLoadingOverlay } from "./auth/auth-loading-overlay"
 
 export function AuthForm() {
     const {
@@ -30,6 +31,7 @@ export function AuthForm() {
 
     return (
         <div className="min-h-screen w-full flex bg-slate-950 text-white overflow-hidden">
+            <AuthLoadingOverlay isVisible={isLoading} mode={mode} />
             {/* Left Column: Form (40%) */}
             <div className="w-full lg:w-[40%] flex flex-col justify-center px-8 sm:px-12 lg:px-20 pt-20 pb-10 relative z-10 bg-slate-950 border-r border-slate-900">
                 <div className="mb-12">
@@ -65,7 +67,12 @@ export function AuthForm() {
                 </div>
 
                 {/* Form */}
-                <form action={handleSubmit} className="space-y-5">
+                <motion.form
+                    action={handleSubmit}
+                    className="space-y-5"
+                    animate={error ? { x: [-4, 4, -4, 4, 0] } : {}}
+                    transition={{ duration: 0.4 }}
+                >
                     <AnimatePresence mode="popLayout">
                         {mode === "signup" && (
                             <motion.div
@@ -169,24 +176,34 @@ export function AuthForm() {
                     {/* Error Message */}
                     {error && (
                         <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400 text-sm"
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 backdrop-blur-md flex items-center gap-3 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.1)]"
                         >
-                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            {error}
+                            <div className="w-9 h-9 rounded-xl bg-rose-500/20 flex items-center justify-center border border-rose-500/30 flex-shrink-0">
+                                <AlertCircle className="w-5 h-5 text-rose-500" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 mb-0.5 leading-none">Handshake Failed</span>
+                                <span className="text-sm font-bold tracking-tight leading-tight">{error}</span>
+                            </div>
                         </motion.div>
                     )}
 
                     {/* Success Message (Signup) */}
                     {isSuccess && mode === "signup" && (
                         <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-2 text-green-400 text-sm"
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md flex items-center gap-3 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
                         >
-                            <Check className="w-4 h-4 flex-shrink-0" />
-                            Check your email to confirm your account.
+                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 flex-shrink-0">
+                                <Check className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 mb-0.5 leading-none">Identity Verified</span>
+                                <span className="text-sm font-bold tracking-tight leading-tight">Check your email to confirm your account.</span>
+                            </div>
                         </motion.div>
                     )}
 
@@ -245,7 +262,7 @@ export function AuthForm() {
                             </AnimatePresence>
                         </Button>
                     </div>
-                </form>
+                </motion.form>
 
                 {/* Social Proof */}
                 <div className="mt-auto pt-12">

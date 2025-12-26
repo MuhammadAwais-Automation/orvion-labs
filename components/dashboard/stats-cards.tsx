@@ -108,10 +108,10 @@ export function StatsCards({
                                     </div>
                                 )}
                                 {stat.status && !stat.trend && (
-                                    <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 flex items-center gap-2">
+                                    <div className="text-xs font-bold text-slate-400 dark:text-zinc-500 flex items-center gap-2">
                                         <div className={cn("w-1.5 h-1.5 rounded-full", stat.color === 'green' ? "bg-emerald-500 animate-pulse" : "bg-slate-300 dark:bg-zinc-700")} />
                                         {stat.status}
-                                    </p>
+                                    </div>
                                 )}
                             </CardContent>
                         </Card>

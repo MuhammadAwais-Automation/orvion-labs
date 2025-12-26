@@ -51,12 +51,17 @@ export function useAuthForm() {
         try {
             if (mode === "signin") {
                 const result = await login(formData)
+
+                // If login was successful, the server action will redirect.
+                // If we reach here, it means it didn't redirect or returned an error.
                 if (result?.error) {
                     toast.error(result.error)
                     setError(result.error)
                     setIsLoading(false)
                     return
                 }
+
+                // Success path (if not redirected yet)
                 setIsSuccess(true)
                 toast.success('Welcome back!')
             } else {
@@ -67,6 +72,7 @@ export function useAuthForm() {
                     setIsLoading(false)
                     return
                 }
+
                 setIsSuccess(true)
                 toast.success('Check your email to confirm account!')
                 setTimeout(() => {
@@ -74,6 +80,14 @@ export function useAuthForm() {
                 }, 2000)
             }
         } catch (err: any) {
+            // Check if this is a Next.js redirect error
+            if (err.message === 'NEXT_REDIRECT' || err.digest?.includes('NEXT_REDIRECT')) {
+                // This is expected during a successful login redirect
+                // We keep isLoading true to let the overlay stay until the page changes
+                return
+            }
+
+            console.error('Auth Error:', err)
             toast.error(err.message || 'Something went wrong. Please try again.')
             setError(err.message)
             setIsLoading(false)

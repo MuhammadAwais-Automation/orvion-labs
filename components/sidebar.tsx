@@ -28,10 +28,13 @@ export function AppSidebar({ user }: AppSidebarProps) {
     const [isCollapsed, setIsCollapsed] = React.useState(false)
     const [isMobileOpen, setIsMobileOpen] = React.useState(false)
 
-    // Sidebar items
-    const navItems = [
+    // Navigation Groups
+    const mainNav = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
         { name: 'Projects', href: '/projects', icon: FolderOpen },
+    ]
+
+    const systemNav = [
         { name: 'Settings', href: '/account', icon: Settings },
     ]
 
@@ -41,7 +44,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 flex items-center justify-between px-4 z-50">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center">
-                        <span className="text-white dark:text-black font-bold font-serif">O</span>
+                        <span className="text-white dark:text-black font-bold">O</span>
                     </div>
                     <span className="font-bold text-lg dark:text-white">Orvion</span>
                 </div>
@@ -53,23 +56,27 @@ export function AppSidebar({ user }: AppSidebarProps) {
             {/* Main Sidebar Panel */}
             <aside
                 className={cn(
-                    "fixed md:sticky top-0 left-0 z-40 h-screen bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-r border-gray-200 dark:border-white/5 transition-all duration-300 flex flex-col",
+                    "fixed md:sticky top-0 left-0 z-40 h-screen bg-white/40 dark:bg-black/40 backdrop-blur-[32px] transition-all duration-500 flex flex-col group/sidebar",
+                    "border-r border-slate-200/50 dark:border-white/[0.04] shadow-[1px_0_0_0_rgba(255,255,255,0.02)_inset]",
                     isCollapsed ? "w-20" : "w-64",
                     isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-                    "hidden md:flex" // Hide initially on mobile, rely on mobile header logic or custom mobile drawer
+                    "hidden md:flex"
                 )}
             >
                 {/* Logo Section */}
-                <div className="h-16 flex items-center px-4 border-b border-gray-200 dark:border-white/5">
+                <div className="h-16 flex items-center px-6 mb-2">
                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex-shrink-0 flex items-center justify-center shadow-lg shadow-cyan-500/10">
-                            <span className="text-white dark:text-black font-bold font-serif">O</span>
+                        <div className="relative group/logo">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex-shrink-0 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 group-hover/logo:scale-110 transition-transform duration-300">
+                                <span className="font-black text-sm">O</span>
+                            </div>
+                            <div className="absolute inset-0 rounded-xl bg-cyan-400/20 blur-lg opacity-0 group-hover/logo:opacity-100 transition-opacity" />
                         </div>
                         {!isCollapsed && (
                             <motion.span
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="font-bold text-lg dark:text-white whitespace-nowrap"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="font-bold text-base tracking-tight dark:text-white whitespace-nowrap"
                             >
                                 Orvion Labs
                             </motion.span>
@@ -77,134 +84,188 @@ export function AppSidebar({ user }: AppSidebarProps) {
                     </div>
                 </div>
 
-                {/* Navigation Items */}
-                {/* Navigation Items */}
-                <div className="flex-1 py-6 px-3 space-y-1 overflow-y-auto scrollbar-none">
-                    {/* Command Prompt Trigger Visual */}
+                {/* Navigation Groups */}
+                <div className="flex-1 py-4 px-3 space-y-8 overflow-y-auto scrollbar-none">
+                    {/* Search Trigger */}
                     {!isCollapsed && (
-                        <button className="w-full mb-6 flex items-center justify-between px-3 py-2 text-sm text-gray-500 dark:text-zinc-500 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors group">
-                            <span className="flex items-center gap-2">
-                                <Command className="w-4 h-4" />
-                                <span>Search...</span>
-                            </span>
-                            <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                                <span className="text-xs">⌘</span>K
-                            </kbd>
-                        </button>
-                    )}
-
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
-                                    isActive
-                                        ? "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 font-medium"
-                                        : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5"
-                                )}
-                            >
-                                <item.icon className={cn("w-5 h-5", isActive ? "text-cyan-600 dark:text-cyan-400" : "text-gray-400 dark:text-zinc-500 group-hover:text-gray-600 dark:group-hover:text-zinc-300")} />
-                                {!isCollapsed && (
-                                    <span className="text-sm">{item.name}</span>
-                                )}
-                                {isActive && !isCollapsed && (
-                                    <motion.div
-                                        layoutId="sidebar-active"
-                                        className="absolute left-0 w-1 h-5 bg-cyan-600 dark:bg-cyan-400 rounded-r-full"
-                                    />
-                                )}
-                            </Link>
-                        )
-                    })}
-                </div>
-
-                {/* Footer / User Profile */}
-                <div className="p-4 border-t border-gray-200 dark:border-white/5 space-y-4">
-                    {/* Theme Toggle Section */}
-                    {!isCollapsed ? (
-                        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/5">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 dark:text-zinc-500">Appearance</span>
-                                <AnimatedThemeToggler />
-                            </div>
-                        </div>
-                    ) : (
-                        /* Collapsed Footer View */
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="scale-90" title="Toggle Theme">
-                                <AnimatedThemeToggler />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* User Profile */}
-                    <div className={cn("flex items-center gap-3", isCollapsed ? "justify-center flex-col-reverse" : "")}>
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white dark:ring-zinc-900 group relative">
-                            {user?.email?.[0].toUpperCase()}
-                            {isCollapsed && (
-                                <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-zinc-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                                    {user?.email}
+                        <div className="px-3 mb-6">
+                            <button className="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-medium tracking-wider uppercase text-slate-500 dark:text-zinc-500 bg-slate-100/50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.05] rounded-xl hover:bg-slate-200 dark:hover:bg-white/[0.06] transition-all group/search overflow-hidden relative">
+                                <span className="flex items-center gap-2 relative z-10">
+                                    <Command className="w-3.5 h-3.5" />
+                                    <span>Command Center</span>
+                                </span>
+                                <div className="flex items-center gap-1 relative z-10">
+                                    <span className="opacity-40">⌘</span>
+                                    <span className="opacity-40">K</span>
                                 </div>
-                            )}
+                                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent translate-x-[-100%] group-hover/search:translate-x-[100%] transition-transform duration-1000" />
+                            </button>
                         </div>
+                    )}
+
+                    {/* Main Nav Section */}
+                    <div className="space-y-1">
                         {!isCollapsed && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                    {user?.email?.split('@')[0]}
-                                </p>
-                                <form action={signOut}>
-                                    <button className="text-xs text-slate-500 hover:text-red-500 dark:hover:text-red-400 flex items-center gap-1 transition-colors mt-0.5">
-                                        Sign out
-                                    </button>
-                                </form>
+                            <div className="px-4 mb-3">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-600">Main Menu</span>
                             </div>
                         )}
+                        {mainNav.map((item) => {
+                            const isActive = pathname === item.href
+                            return (
+                                <SidebarNavItem key={item.name} item={item} isActive={isActive} isCollapsed={isCollapsed} />
+                            )
+                        })}
+                    </div>
+
+                    {/* System Nav Section */}
+                    <div className="space-y-1">
+                        {!isCollapsed && (
+                            <div className="px-4 mb-3">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-600">System</span>
+                            </div>
+                        )}
+                        {systemNav.map((item) => {
+                            const isActive = pathname === item.href
+                            return (
+                                <SidebarNavItem key={item.name} item={item} isActive={isActive} isCollapsed={isCollapsed} />
+                            )
+                        })}
                     </div>
                 </div>
 
-                {/* Collapse Toggle */}
+                {/* Footer / User Profile Card */}
+                <div className="p-4 space-y-4">
+                    {/* Appearance Section */}
+                    {!isCollapsed && (
+                        <div className="px-3 py-2 rounded-2xl bg-slate-100/50 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/[0.05] flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500">Theme</span>
+                            <AnimatedThemeToggler />
+                        </div>
+                    )}
+
+                    {/* User Profile Card */}
+                    <div className={cn(
+                        "relative rounded-2xl p-2.5 transition-all duration-300",
+                        !isCollapsed ? "bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] shadow-2xl shadow-black/5" : "flex flex-col items-center gap-4"
+                    )}>
+                        <div className={cn("flex items-center gap-3", isCollapsed ? "flex-col" : "")}>
+                            {/* Avatar */}
+                            <div className="relative group/avatar">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white/10 dark:ring-white/5 transition-transform group-hover/avatar:scale-105">
+                                    {user?.email?.[0].toUpperCase()}
+                                </div>
+                                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#141416]" />
+                            </div>
+
+                            {!isCollapsed && (
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate tracking-tight">
+                                        {user?.email?.split('@')[0]}
+                                    </p>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                                        <span className="text-[9px] font-medium text-slate-500 dark:text-zinc-500 uppercase tracking-wider">System Online</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isCollapsed ? (
+                                <div className="scale-75"><AnimatedThemeToggler /></div>
+                            ) : (
+                                <form action={signOut}>
+                                    <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
+                                        <LogOut className="w-3.5 h-3.5" />
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Collapse Toggle - Redesigned */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 dark:text-zinc-500 dark:hover:text-white shadow-sm transition-transform hover:scale-105 z-50"
+                    className="absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-500 shadow-xl transition-all hover:scale-110 z-50 group/toggle"
                 >
-                    <ChevronRight className={cn("w-3 h-3 transition-transform duration-300", !isCollapsed && "rotate-180")} />
+                    <ChevronRight className={cn("w-3 h-3 transition-transform duration-500", !isCollapsed ? "rotate-180" : "group-hover/toggle:translate-x-0.5")} />
                 </button>
             </aside>
 
-            {/* Mobile Drawer (Simplified) */}
-            {
-                isMobileOpen && (
-
-                    <div className="fixed inset-0 z-50 md:hidden">
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
-                        <motion.div
-                            initial={{ x: -300 }}
-                            animate={{ x: 0 }}
-                            className="absolute inset-y-0 left-0 w-64 bg-zinc-950 border-r border-white/10 p-4"
-                        >
-                            {/* Mobile Nav Content */}
-                            <div className="flex items-center justify-between mb-8">
-                                <span className="font-bold text-white text-lg">Menu</span>
-                                <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(false)}><X className="text-white" /></Button>
+            {/* Mobile Drawer */}
+            {isMobileOpen && (
+                <div className="fixed inset-0 z-50 md:hidden">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsMobileOpen(false)} />
+                    <motion.div
+                        initial={{ x: -300 }}
+                        animate={{ x: 0 }}
+                        className="absolute inset-y-0 left-0 w-72 bg-white dark:bg-zinc-950 border-r border-slate-200 dark:border-white/10 p-6 shadow-2xl"
+                    >
+                        <div className="flex items-center justify-between mb-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center">
+                                    <span className="text-white dark:text-black font-bold">O</span>
+                                </div>
+                                <span className="font-bold dark:text-white">Orvion</span>
                             </div>
-                            {navItems.map((item) => (
+                            <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(false)} className="rounded-xl"><X /></Button>
+                        </div>
+                        <div className="space-y-2">
+                            {[...mainNav, ...systemNav].map((item) => (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className="flex items-center gap-3 px-3 py-3 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 mb-1"
+                                    className="flex items-center gap-4 px-4 py-3 text-slate-600 dark:text-zinc-400 hover:text-cyan-500 hover:bg-cyan-500/10 rounded-2xl transition-all"
                                     onClick={() => setIsMobileOpen(false)}
                                 >
                                     <item.icon className="w-5 h-5" />
-                                    {item.name}
+                                    <span className="font-medium">{item.name}</span>
                                 </Link>
                             ))}
-                        </motion.div>
-                    </div>
-                )
-            }
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </>
+    )
+}
+
+function SidebarNavItem({ item, isActive, isCollapsed }: { item: any, isActive: boolean, isCollapsed: boolean }) {
+    return (
+        <Link
+            href={item.href}
+            className={cn(
+                "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 group relative",
+                isActive
+                    ? "text-cyan-600 dark:text-cyan-400 font-bold"
+                    : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-white/[0.04]"
+            )}
+        >
+            <div className="relative z-10">
+                <item.icon className={cn("w-5 h-5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6", isActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400 dark:text-zinc-500 group-hover:text-cyan-500")} />
+            </div>
+
+            {!isCollapsed && (
+                <span className="text-sm tracking-tight relative z-10">{item.name}</span>
+            )}
+
+            {isActive && (
+                <motion.div
+                    layoutId="sidebar-active-pill"
+                    className={cn(
+                        "absolute inset-0 bg-cyan-500/10 dark:bg-cyan-500/5 border border-cyan-500/20 dark:border-cyan-500/10 rounded-xl z-0",
+                        isCollapsed ? "w-12 mx-auto" : "w-full"
+                    )}
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
+            )}
+
+            {isActive && !isCollapsed && (
+                <motion.div
+                    layoutId="sidebar-active-line"
+                    className="absolute left-0 w-1 h-4 bg-cyan-500 rounded-r-full z-10"
+                />
+            )}
+        </Link>
     )
 }
