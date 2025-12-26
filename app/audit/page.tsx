@@ -51,7 +51,7 @@ export default async function AuditPage() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold">Internal Cost Auditor</h1>
-                        <p className="text-slate-400">Verify token calculations and credit charges</p>
+                        <p className="text-slate-400">Verify token calculations and AI usage</p>
                     </div>
                 </div>
 
@@ -76,7 +76,7 @@ export default async function AuditPage() {
                         <CardHeader className="pb-2">
                             <CardTitle className="text-sm text-slate-400 font-medium flex items-center gap-2">
                                 <Zap className="w-4 h-4" />
-                                Total Credits Burned
+                                Total AI Usage
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -91,14 +91,14 @@ export default async function AuditPage() {
                         <CardHeader className="pb-2">
                             <CardTitle className="text-sm text-slate-400 font-medium flex items-center gap-2">
                                 <Calculator className="w-4 h-4" />
-                                Avg Cost/Test
+                                Avg Usage/Test
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <p className="text-3xl font-bold text-white">
                                 {testResults.length > 0 ? (totalCredits / testResults.length).toFixed(1) : '0'}
                             </p>
-                            <p className="text-xs text-slate-500 mt-1">credits per test case</p>
+                            <p className="text-xs text-slate-500 mt-1">usage units per test case</p>
                         </CardContent>
                     </Card>
 

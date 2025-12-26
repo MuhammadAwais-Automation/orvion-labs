@@ -19,17 +19,7 @@ export default async function RootLayout({
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Fetch user credits if authenticated
-    let credits: number | null = null
-    if (user) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('credits')
-            .eq('id', user.id)
-            .single()
 
-        credits = profile?.credits ?? null
-    }
 
     return (
         <html lang="en" suppressHydrationWarning>
@@ -57,7 +47,7 @@ export default async function RootLayout({
 
                     {/* Render layout based on auth state */}
                     {user ? (
-                        <AuthenticatedLayout user={user} initialCredits={credits}>
+                        <AuthenticatedLayout user={user}>
                             {children}
                         </AuthenticatedLayout>
                     ) : (

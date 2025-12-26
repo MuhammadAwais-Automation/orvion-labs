@@ -3,10 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import OpenAI from 'openai';
-import { gradeResult } from './ai-actions';
 import { ModelConfig } from '@/types/database';
 import { getJudgeSystemPrompt } from '@/utils/judge-prompt';
-import { calculateCost } from '@/utils/model-pricing';
 import { inngest } from '@/lib/inngest';
 
 // --- RUNNER ACTIONS (WITH CREDIT PRICING & COST BREAKDOWN) ---
@@ -101,20 +99,10 @@ export async function runBatchTests(
 ) {
     const supabase = await createClient();
 
-    // 0. CHECK BALANCE & AUTH
+    // 0. CHECK AUTH
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         return { success: false, error: "User not authenticated" };
-    }
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile || profile.credits < 5) {
-        return { success: false, error: "Insufficient credits to start run (min 5 required)" };
     }
 
     // 1. Trigger Async Execution via Inngest

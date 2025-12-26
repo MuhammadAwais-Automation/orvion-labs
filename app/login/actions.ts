@@ -90,8 +90,6 @@ export async function signup(formData: FormData) {
                     id: data.user.id,
                     email: email,
                     full_name: defaultName, // Set default name from email
-                    credits: 1000, // Default starting credits
-                    tier: 'free'
                 })
 
             if (profileError) {

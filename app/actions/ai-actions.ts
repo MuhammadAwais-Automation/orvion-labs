@@ -15,8 +15,7 @@ export async function gradeResult(
     expected: string,
     actual: string,
     rules: any = {},
-    supabaseClient?: any,
-    skipDeduction: boolean = false
+    supabaseClient?: any
 ): Promise<{ pass: boolean; reason: string; tokensUsed: number }> {
     const supabase = supabaseClient || await createClient();
 
@@ -32,16 +31,7 @@ export async function gradeResult(
         return { pass: false, reason: 'Unauthorized: Project ownership verify failed', tokensUsed: 0 };
     }
 
-    // 2. Pre-flight Credit Check (Even if skipping deduction, we need to ensure they have balance)
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', userId)
-        .single();
 
-    if (profileError || !profile || profile.credits < 2) {
-        return { pass: false, reason: 'Insufficient credits (min 2 required)', tokensUsed: 0 };
-    }
 
     // 3. Dynamic Model Selection
     const model = rules.strictMode ? 'gpt-4o' : 'gpt-4o-mini';
@@ -75,14 +65,7 @@ export async function gradeResult(
 
         const result = JSON.parse(content);
 
-        // 5. Credit Deduction Logic (Conditional)
-        if (!skipDeduction) {
-            const cost = calculateCost(model, tokensUsed);
-            await supabase
-                .from('profiles')
-                .update({ credits: profile.credits - cost })
-                .eq('id', userId);
-        }
+
 
         return { pass: result.pass, reason: result.reason, tokensUsed };
     } catch (e: any) {
@@ -128,20 +111,10 @@ export async function generateExpectedOutput(projectId: string, userInput: strin
     const supabase = await createClient();
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // 0. Check user auth and credits
+    // 0. Check user auth
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         return { success: false, error: 'User not authenticated' };
-    }
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile || profile.credits < 1) {
-        return { success: false, error: 'Insufficient credits' };
     }
 
     // 1. Fetch project's current version (model_config + system_prompt)
@@ -189,16 +162,7 @@ export async function generateExpectedOutput(projectId: string, userInput: strin
         const expectedOutput = completion.choices[0]?.message?.content || '';
         const tokensUsed = completion.usage?.total_tokens || 0;
 
-        // Calculate cost and deduct credits
-        const cost = calculateCost(modelConfig.model || 'gpt-4o-mini', tokensUsed);
-
-        // Deduct credits from user profile
-        await supabase
-            .from('profiles')
-            .update({ credits: profile.credits - cost })
-            .eq('id', user.id);
-
-        return { success: true, text: expectedOutput, cost };
+        return { success: true, text: expectedOutput };
     } catch (error: any) {
         console.error('Error generating expected output:', error);
         return { success: false, error: error.message };

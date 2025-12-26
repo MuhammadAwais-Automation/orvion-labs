@@ -2,7 +2,6 @@ import { inngest } from "@/lib/inngest";
 import { createAdminClient } from "@/lib/supabase/admin";
 import OpenAI from "openai";
 import { gradeResult } from "@/app/actions/ai-actions";
-import { calculateCost } from "@/utils/model-pricing";
 import { ModelConfig } from "@/types/database";
 
 export const executeTestSuite = inngest.createFunction(
@@ -89,7 +88,6 @@ export const executeTestSuite = inngest.createFunction(
 
                         actualOutput = completion.choices[0].message.content || '';
                         tokens = completion.usage?.total_tokens || 0;
-                        generationCost = calculateCost(modelConfig.model || 'gpt-4o-mini', tokens);
 
                         // Standard Match & Fallback to AI Judge
                         let cleanOutput = actualOutput.trim();
@@ -97,7 +95,7 @@ export const executeTestSuite = inngest.createFunction(
                         if (tc.expected_output) {
                             const matches = cleanOutput.toLowerCase().includes(tc.expected_output.toLowerCase());
                             if (!matches) {
-                                // Call Refactored gradeResult with skipDeduction: true
+                                // Call Refactored gradeResult
                                 const grade = await gradeResult(
                                     userId,
                                     projectId,
@@ -105,8 +103,7 @@ export const executeTestSuite = inngest.createFunction(
                                     tc.expected_output,
                                     cleanOutput,
                                     evalRules,
-                                    supabase,
-                                    true // skipDeduction: true
+                                    supabase
                                 );
 
                                 if (!grade.pass) {
@@ -147,20 +144,7 @@ export const executeTestSuite = inngest.createFunction(
                         console.error('[INNGEST] Result insert error:', insertErr);
                     }
 
-                    // 4. Atomic Credit Deduction (Generation + Judge Cost)
-                    const totalTokens = tokens + judgeTokens;
-                    const modelToCharge = judgeTokens > 0 && evalRules.strictMode ? 'gpt-4o' : (modelConfig.model || 'gpt-4o-mini');
-                    const totalCost = calculateCost(modelToCharge, totalTokens);
 
-                    if (totalCost > 0) {
-                        const { error: rpcErr } = await supabase.rpc('deduct_user_credits', {
-                            p_user_id: userId,
-                            p_amount: totalCost
-                        });
-                        if (rpcErr) {
-                            console.error('[INNGEST] RPC deduct error:', rpcErr);
-                        }
-                    }
 
                     return { success: true };
                 });

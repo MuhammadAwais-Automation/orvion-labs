@@ -62,7 +62,7 @@ export function TestCaseDialogs({
             } else {
                 setEditForm(prev => ({ ...prev, expected: result.text! }))
             }
-            toast.success(`Generated! Cost: ${result.cost} Credits`)
+            toast.success('Expected output generated!')
         } else {
             toast.error(result.error || 'Generation failed')
         }

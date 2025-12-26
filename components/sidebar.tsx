@@ -22,10 +22,9 @@ import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
 
 interface AppSidebarProps {
     user?: any
-    credits?: number | null
 }
 
-export function AppSidebar({ user, credits }: AppSidebarProps) {
+export function AppSidebar({ user }: AppSidebarProps) {
     const pathname = usePathname()
     const [isCollapsed, setIsCollapsed] = React.useState(false)
     const [isMobileOpen, setIsMobileOpen] = React.useState(false)
@@ -126,29 +125,10 @@ export function AppSidebar({ user, credits }: AppSidebarProps) {
 
                 {/* Footer / User Profile */}
                 <div className="p-4 border-t border-gray-200 dark:border-white/5 space-y-4">
-                    {/* Status Section (Credits & Theme) */}
+                    {/* Theme Toggle Section */}
                     {!isCollapsed ? (
-                        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 space-y-3 border border-gray-200 dark:border-white/5">
-                            {credits !== null && (
-                                <div className="space-y-1.5">
-                                    <div className="flex justify-between text-[10px] uppercase tracking-wider font-semibold text-gray-500 dark:text-zinc-500">
-                                        <span>Credits Usage</span>
-                                        <span>{Math.round(((credits ?? 0) / 5000) * 100)}%</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
-                                            style={{ width: `${Math.min(((credits ?? 0) / 5000) * 100, 100)}%` }}
-                                        />
-                                    </div>
-                                    <div className="flex justify-between text-[10px] text-gray-400 dark:text-zinc-500">
-                                        <span>{credits?.toLocaleString() ?? 0} used</span>
-                                        <span>5,000 limit</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-white/5">
+                        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/5">
+                            <div className="flex items-center justify-between">
                                 <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 dark:text-zinc-500">Appearance</span>
                                 <AnimatedThemeToggler />
                             </div>
@@ -159,28 +139,6 @@ export function AppSidebar({ user, credits }: AppSidebarProps) {
                             <div className="scale-90" title="Toggle Theme">
                                 <AnimatedThemeToggler />
                             </div>
-
-                            {credits != null && (
-                                <div className="group relative flex items-center justify-center" title={`Credits: ${(credits ?? 0).toLocaleString()} / 5,000`}>
-                                    {/* Simple circular progress for collapsed state */}
-                                    <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
-                                        <circle cx="16" cy="16" r="14" className="fill-none stroke-gray-200 dark:stroke-zinc-800" strokeWidth="3" />
-                                        <circle
-                                            cx="16"
-                                            cy="16"
-                                            r="14"
-                                            className="fill-none stroke-cyan-500 transition-all duration-500"
-                                            strokeWidth="3"
-                                            strokeDasharray={88}
-                                            strokeDashoffset={88 - (88 * Math.min(((credits ?? 0) / 5000), 1))}
-                                            strokeLinecap="round"
-                                        />
-                                    </svg>
-                                    <span className="absolute text-[8px] font-bold text-gray-500 dark:text-zinc-400">
-                                        {Math.round(((credits ?? 0) / 5000) * 100)}%
-                                    </span>
-                                </div>
-                            )}
                         </div>
                     )}
 

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { GeneralSection } from '@/components/account/general-section'
-import { BillingSection } from '@/components/account/billing-section'
 import { SecuritySection } from '@/components/account/security-section'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,18 +11,13 @@ interface AccountClientProps {
     fullName: string
     email: string
     userId: string
-    credits: number
-    tier: 'free' | 'pro'
 }
 
-export function AccountClient({ fullName, email, userId, credits, tier }: AccountClientProps) {
+export function AccountClient({ fullName, email, userId }: AccountClientProps) {
     const [activeTab, setActiveTab] = useState('general')
-
-    const creditLimit = tier === 'pro' ? 100000 : 1000
 
     const tabs = [
         { id: 'general', label: 'General' },
-        { id: 'billing', label: 'Billing & Plans' },
         { id: 'security', label: 'Security' }
     ]
 
@@ -47,7 +41,7 @@ export function AccountClient({ fullName, email, userId, credits, tier }: Accoun
                     </form>
                 </div>
                 <p className="text-gray-500 dark:text-zinc-400">
-                    Manage your account preferences and subscription.
+                    Manage your account preferences.
                 </p>
             </div>
 
@@ -76,14 +70,6 @@ export function AccountClient({ fullName, email, userId, credits, tier }: Accoun
                         initialFullName={fullName}
                         email={email}
                         userId={userId}
-                    />
-                )}
-
-                {activeTab === 'billing' && (
-                    <BillingSection
-                        credits={credits}
-                        tier={tier}
-                        creditLimit={creditLimit}
                     />
                 )}
 

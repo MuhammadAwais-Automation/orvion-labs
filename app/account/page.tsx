@@ -3,8 +3,8 @@ import { redirect } from 'next/navigation'
 import { AccountClient } from '@/components/account/account-client'
 
 export const metadata = {
-    title: 'Account & Billing - Orvion Labs',
-    description: 'Manage your account settings, subscription, and billing',
+    title: 'Account & Settings - Orvion Labs',
+    description: 'Manage your account settings and preferences',
 }
 
 export default async function AccountPage() {
@@ -24,8 +24,6 @@ export default async function AccountPage() {
         .eq('id', user.id)
         .single()
 
-    const credits = profile?.credits || 0
-    const tier = profile?.tier || 'free'
     const email = profile?.email || user.email || ''
     const fullName = profile?.full_name || ''
 
@@ -34,8 +32,6 @@ export default async function AccountPage() {
             fullName={fullName}
             email={email}
             userId={user.id}
-            credits={credits}
-            tier={tier as 'free' | 'pro'}
         />
     )
 }

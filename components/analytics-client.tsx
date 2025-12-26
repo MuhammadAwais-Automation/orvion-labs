@@ -158,7 +158,7 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
                     />
                     <SummaryCard
                         icon={<Zap className="w-5 h-5 text-amber-500" />}
-                        label="Credits Used"
+                        label="AI Usage"
                         value={summary.totalCost}
                         bgColor="bg-amber-500/10"
                     />
@@ -217,7 +217,7 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
                     <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/10 rounded-xl p-5">
                         <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
                             <Zap className="w-4 h-4 text-amber-500" />
-                            Credits Consumed Per Day
+                            AI Usage Per Day
                         </h3>
                         <div className="h-[250px]">
                             <ResponsiveContainer width="100%" height="100%">

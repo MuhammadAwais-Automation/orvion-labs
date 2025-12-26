@@ -130,8 +130,6 @@ export interface TestJob {
 export interface Profile {
     id: string; // uuid, PK, references auth.users
     email: string;
-    credits: number; // default 1000
-    tier: string; // default 'free'
     full_name: string | null; // user's display name
     created_at: string; // timestamp
 }
