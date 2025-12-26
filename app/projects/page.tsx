@@ -34,17 +34,20 @@ export default async function ProjectsPage() {
         .limit(100) // Fetch slightly more for the dedicated page
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+        <div className="max-w-7xl mx-auto space-y-10 pb-12">
+            <div className="flex flex-col md:flex-row items-end justify-between gap-6 pb-2">
+                <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-500 ml-1 mb-2">Workspace Manager</p>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
                         Projects
                     </h1>
-                    <p className="text-gray-500 dark:text-zinc-400">
+                    <p className="text-slate-500 dark:text-zinc-500 text-sm font-medium tracking-wide ml-1">
                         Create, manage, and monitor all your AI prompt testing suites.
                     </p>
                 </div>
-                <CreateProjectButton />
+                <div className="flex items-center gap-4">
+                    <CreateProjectButton />
+                </div>
             </div>
 
             <ProjectsManager

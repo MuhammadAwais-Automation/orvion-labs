@@ -86,7 +86,6 @@ export function Navbar({ user, credits }: NavbarProps) {
         { name: 'Features', href: '#features' },
         { name: 'Method', href: '#method' },
         { name: 'Pricing', href: '#pricing' },
-        { name: 'Docs', href: '/docs' },
     ]
 
     return (

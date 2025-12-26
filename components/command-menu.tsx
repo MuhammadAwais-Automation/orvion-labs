@@ -16,8 +16,7 @@ import {
     Moon,
     Sun,
     Laptop,
-    Plus,
-    FileText
+    Plus
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -77,13 +76,6 @@ export function CommandMenu() {
                             >
                                 <FolderOpen className="mr-2 h-4 w-4" />
                                 <span>Projects</span>
-                            </Command.Item>
-                            <Command.Item
-                                className="relative flex cursor-default select-none items-center rounded-lg px-2 py-2 text-sm outline-none aria-selected:bg-gray-100 dark:aria-selected:bg-white/10 dark:text-gray-100"
-                                onSelect={() => runCommand(() => router.push('/docs'))}
-                            >
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>Documentation</span>
                             </Command.Item>
                             <Command.Item
                                 className="relative flex cursor-default select-none items-center rounded-lg px-2 py-2 text-sm outline-none aria-selected:bg-gray-100 dark:aria-selected:bg-white/10 dark:text-gray-100"

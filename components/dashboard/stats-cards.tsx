@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Activity, BarChart, Layers, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface StatsCardsProps {
     totalRuns: number
@@ -60,7 +61,7 @@ export function StatsCards({
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, index) => {
                 const Icon = stat.icon
                 const colorClass = colorMap[stat.color]
@@ -72,34 +73,43 @@ export function StatsCards({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                     >
-                        <Card className="bg-white/80 dark:bg-zinc-900/50 border-gray-200 dark:border-white/5 backdrop-blur-md hover:border-gray-300 dark:hover:border-white/10 transition-all duration-300 shadow-sm hover:shadow-lg group">
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-600 dark:text-zinc-400">
+                        <Card className="bg-white dark:bg-white/[0.01] border border-slate-200 dark:border-white/[0.05] rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group h-full">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-6 px-6">
+                                <CardTitle className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-zinc-500">
                                     {stat.title}
                                 </CardTitle>
-                                <div className={`p-2 rounded-lg border bg-opacity-20 dark:bg-opacity-10 group-hover:bg-opacity-30 transition-all duration-300 ${colorClass}`}>
+                                <div className={cn(
+                                    "p-2 rounded-xl transition-all duration-300",
+                                    stat.color === 'cyan' ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400" :
+                                        stat.color === 'purple' ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" :
+                                            stat.color === 'blue' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
+                                                "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                )}>
                                     <Icon className="w-4 h-4" />
-                                    {stat.pulse && (
-                                        <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                    )}
                                 </div>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                            <CardContent className="px-6 pb-6 pt-2">
+                                <div className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2 tabular-nums">
                                     {stat.value}
                                 </div>
                                 {stat.trend !== undefined && (
-                                    <div className={`flex items-center gap-1 text-sm ${stat.trend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                        {stat.trend >= 0 ? (
-                                            <TrendingUp className="w-3 h-3" />
-                                        ) : (
-                                            <TrendingDown className="w-3 h-3" />
-                                        )}
+                                    <div className={`flex items-center gap-1.5 text-xs font-bold ${stat.trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                        <div className={cn(
+                                            "flex items-center justify-center w-5 h-5 rounded-full",
+                                            stat.trend >= 0 ? "bg-emerald-500/10" : "bg-rose-500/10"
+                                        )}>
+                                            {stat.trend >= 0 ? (
+                                                <TrendingUp className="w-3 h-3" />
+                                            ) : (
+                                                <TrendingDown className="w-3 h-3" />
+                                            )}
+                                        </div>
                                         <span>{stat.trendText}</span>
                                     </div>
                                 )}
-                                {stat.status && (
-                                    <p className="text-sm text-gray-500">
+                                {stat.status && !stat.trend && (
+                                    <p className="text-xs font-bold text-slate-400 dark:text-zinc-500 flex items-center gap-2">
+                                        <div className={cn("w-1.5 h-1.5 rounded-full", stat.color === 'green' ? "bg-emerald-500 animate-pulse" : "bg-slate-300 dark:bg-zinc-700")} />
                                         {stat.status}
                                     </p>
                                 )}

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { StatsCards } from '@/components/dashboard/stats-cards'
 import { ModelPerformanceChart } from '@/components/dashboard/model-performance-chart'
-import { ActivityFeed } from '@/components/dashboard/activity-feed'
+import { LandingPage } from '@/components/landing-page'
 
 export const metadata = {
     title: 'Orvion Labs - Dashboard',
@@ -16,9 +16,9 @@ export default async function Page() {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // If no user, redirect to login
+    // If no user, show the landing page
     if (!user) {
-        return redirect('/login')
+        return <LandingPage />
     }
 
     // Fetch user profile for name
@@ -28,12 +28,11 @@ export default async function Page() {
         .eq('id', user.id)
         .single()
 
-    // Fetch user's projects
-    const { data: projects } = await supabase
+    // Fetch user's projects count for stats
+    const { count: activeProjectsCount } = await supabase
         .from('projects')
-        .select('*')
+        .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
 
     // Fetch recent test runs for analytics
     const { data: recentRuns } = await supabase
@@ -54,54 +53,44 @@ export default async function Page() {
         }, 0) / completedRuns.length)
         : 0
 
-    const activeProjects = projects?.length || 0
-
-    // Count projects updated in last 7 days
+    // Count projects updated recently (last 7 days)
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    const recentlyUpdated = projects?.filter(p =>
-        new Date(p.updated_at || p.created_at) > sevenDaysAgo
-    ).length || 0
+
+    const { count: recentlyUpdated } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gt('updated_at', sevenDaysAgo.toISOString())
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            {/* Bento Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="max-w-7xl mx-auto space-y-12 pb-12">
+            {/* Header Section */}
+            <DashboardHeader userName={profile?.full_name} userEmail={user.email} />
 
-                {/* Header Section - Spans full width */}
-                <div className="md:col-span-12">
-                    <DashboardHeader userName={profile?.full_name} userEmail={user.email} />
+            {/* Main Content Sections */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between px-1">
+                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Key Performance Indicators</h2>
                 </div>
+                <StatsCards
+                    totalRuns={totalRuns}
+                    avgPassRate={avgPassRate}
+                    activeProjects={activeProjectsCount || 0}
+                    recentlyUpdated={recentlyUpdated || 0}
+                    runsTrend={12}
+                />
+            </section>
 
-                {/* Stats Cards - Spans full width but internally grid */}
-                <div className="md:col-span-12">
-                    <StatsCards
-                        totalRuns={totalRuns}
-                        avgPassRate={avgPassRate}
-                        activeProjects={activeProjects}
-                        recentlyUpdated={recentlyUpdated}
-                        runsTrend={12} // Mock trend
-                    />
+            {/* Analytics Section */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between px-1">
+                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Stability Matrix</h2>
                 </div>
-
-                {/* Main Content Area: Charts & Activity */}
-                <div className="md:col-span-8 flex flex-col gap-6">
-                    {/* Charts Take Priority - Analytics System */}
-                    <div className="flex-1">
-                        <ModelPerformanceChart />
-                    </div>
+                <div className="w-full h-full">
+                    <ModelPerformanceChart />
                 </div>
-
-                {/* Right Sidebar: Activity Feed */}
-                <div className="md:col-span-4 flex flex-col gap-6">
-                    <div className="sticky top-6">
-                        <ActivityFeed />
-
-                        {/* Optional: Add a "Quick Tips" or "System Status" small card here later */}
-                    </div>
-                </div>
-
-            </div>
+            </section>
         </div>
     )
 }

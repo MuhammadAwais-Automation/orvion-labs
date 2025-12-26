@@ -8,7 +8,6 @@ import {
     LayoutDashboard,
     FolderOpen,
     Settings,
-    Book,
     LogOut,
     Menu,
     X,
@@ -33,7 +32,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
     const navItems = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard },
         { name: 'Projects', href: '/projects', icon: FolderOpen },
-        { name: 'Documentation', href: '/docs', icon: Book },
         { name: 'Settings', href: '/account', icon: Settings },
     ]
 

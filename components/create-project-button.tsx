@@ -3,6 +3,18 @@
 import { useState } from 'react'
 import { createProject } from '@/app/actions'
 import { X, Plus } from 'lucide-react'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 
 export function CreateProjectButton() {
     const [isOpen, setIsOpen] = useState(false)
@@ -27,82 +39,82 @@ export function CreateProjectButton() {
     }
 
     return (
-        <>
-            <button
-                onClick={() => setIsOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-            >
-                <Plus className="w-5 h-5" />
-                New Project
-            </button>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-black uppercase tracking-widest text-xs h-12 px-6 rounded-2xl shadow-lg shadow-cyan-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <Plus className="w-5 h-5 mr-2" />
+                    New Project
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white dark:bg-zinc-950 border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 max-w-lg shadow-2xl">
+                <DialogHeader className="space-y-4 mb-4">
+                    <div className="w-16 h-16 bg-cyan-500/10 rounded-[1.25rem] border border-cyan-500/20 flex items-center justify-center">
+                        <Plus className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+                    </div>
+                    <div>
+                        <DialogTitle className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Create Project</DialogTitle>
+                        <DialogDescription className="text-slate-500 dark:text-zinc-500 font-medium pt-1">
+                            Build a new workspace for your prompt engineering.
+                        </DialogDescription>
+                    </div>
+                </DialogHeader>
 
-            {isOpen && (
-                <div className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-slate-800 transition-colors">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-800">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create New Project</h2>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="space-y-6">
+                        <div className="space-y-2.5">
+                            <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-zinc-500 ml-1">
+                                Project Name
+                            </Label>
+                            <Input
+                                type="text"
+                                id="name"
+                                name="name"
+                                required
+                                className="h-12 bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/10 rounded-2xl focus-visible:ring-cyan-500/30 transition-all font-medium placeholder:text-slate-400"
+                                placeholder="e.g. Customer Support v2"
+                            />
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Project Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    required
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                                    placeholder="My AI Prompt Tests"
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Description (Optional)
-                                </label>
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    rows={3}
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-800 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-colors"
-                                    placeholder="Testing prompts for customer support chatbot..."
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 rounded-lg text-red-600 dark:text-red-400 text-sm">
-                                    {error}
-                                </div>
-                            )}
-
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsOpen(false)}
-                                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading ? 'Creating...' : 'Create Project'}
-                                </button>
-                            </div>
-                        </form>
+                        <div className="space-y-2.5">
+                            <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-zinc-500 ml-1">
+                                Description (Optional)
+                            </Label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                rows={3}
+                                className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/10 rounded-2xl focus-visible:ring-cyan-500/30 transition-all font-medium placeholder:text-slate-400 resize-none p-4"
+                                placeholder="Testing prompts for customer support chatbot..."
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
-        </>
+
+                    {error && (
+                        <div className="p-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/50 rounded-2xl text-rose-600 dark:text-rose-400 text-sm font-bold flex items-center gap-2">
+                            <X className="w-4 h-4" />
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="flex gap-4 pt-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setIsOpen(false)}
+                            className="flex-1 h-12 rounded-2xl font-black uppercase tracking-widest text-xs border border-slate-200 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-white/5"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="flex-1 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs hover:bg-slate-800 dark:hover:bg-zinc-200 shadow-xl transition-all"
+                        >
+                            {isLoading ? 'Creating Workspace...' : 'Create Workspace'}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }

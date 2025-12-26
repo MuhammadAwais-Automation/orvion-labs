@@ -36,31 +36,28 @@ export function DashboardHeader({ userName, userEmail }: DashboardHeaderProps) {
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
+            className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 pb-2"
         >
             {/* Left: Greeting */}
-            <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                    <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">
-                        Welcome back, {formattedName}
-                    </span>
+            <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-500 ml-1 mb-2">Command Center</p>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+                    Welcome, {formattedName.split(' ')[0]}.
                 </h1>
-                <p className="text-gray-500 dark:text-zinc-400 text-sm md:text-base font-light tracking-wide">
-                    Here's what's happening with your prompt engineering projects.
+                <p className="text-slate-500 dark:text-zinc-500 text-sm font-medium tracking-wide ml-1">
+                    Your workspace is optimized and ready for deployment.
                 </p>
             </div>
 
-            {/* Right: Clock + Actions */}
-            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                {/* Clock Only - Buttons Removed */}
-                <div className="px-3 md:px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300" suppressHydrationWarning>
-                    {currentTime && (
-                        <>
-                            <span className="hidden sm:inline">{format(currentTime, 'EEE, MMM d')} • </span>
-                            {format(currentTime, 'HH:mm:ss')}
-                        </>
-                    )}
-                    {!currentTime && '--:--:--'}
+            {/* Right: Clock + Status Indicator */}
+            <div className="flex items-center gap-4">
+                <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] shadow-sm" suppressHydrationWarning>
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
+                        <span className="text-xs font-bold font-mono text-slate-600 dark:text-zinc-400">
+                            {currentTime && format(currentTime, 'HH:mm:ss')}
+                        </span>
+                    </div>
                 </div>
             </div>
         </motion.div>
