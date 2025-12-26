@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getProjectAnalytics } from '@/app/actions'
+import { cn } from '@/lib/utils'
 import {
     LineChart,
     Line,
@@ -105,35 +106,38 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
     }
 
     return (
-        <div className="h-full flex flex-col bg-white dark:bg-[#09090b] overflow-hidden">
+        <div className="h-full flex flex-col bg-slate-50 dark:bg-[#09090b] overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 p-6 border-b border-white/10">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-                            <BarChart3 className="w-6 h-6 text-cyan-500" />
-                            Project Analytics
-                        </h1>
-                        <p className="text-slate-400 text-sm mt-1">
-                            {projectName} • {selectedRange === 'all' ? 'All time' : `Last ${selectedRange.replace('d', ' days')}`}
+            <div className="flex-shrink-0 p-8">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
+                                <BarChart3 className="w-5 h-5" />
+                            </div>
+                            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Project Analytics</h1>
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-500 font-medium text-sm ml-1">
+                            {projectName} • Last {selectedRange === 'all' ? 'year' : selectedRange.replace('d', ' days')}
                         </p>
                     </div>
 
-                    {/* Date Range Picker */}
-                    <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
+                    {/* Date Range Picker - Pill Style */}
+                    <div className="flex items-center gap-1 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] p-1 rounded-2xl shadow-sm">
                         {(['7d', '30d', '90d', 'all'] as DateRange[]).map((range) => (
                             <Button
                                 key={range}
-                                variant={selectedRange === range ? 'secondary' : 'ghost'}
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => setSelectedRange(range)}
-                                className={`text-xs h-8 ${selectedRange === range
-                                    ? 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
-                                    : 'text-slate-400 hover:text-white hover:bg-white/10'
-                                    }`}
+                                className={cn(
+                                    "text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-xl transition-all",
+                                    selectedRange === range
+                                        ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
+                                        : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5"
+                                )}
                             >
-                                <Calendar className="w-3 h-3 mr-1.5" />
-                                {range === 'all' ? 'All' : range.replace('d', 'D')}
+                                {range === 'all' ? 'All' : range}
                             </Button>
                         ))}
                     </div>
@@ -141,213 +145,244 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-4 gap-4">
-                    <SummaryCard
-                        icon={<Activity className="w-5 h-5 text-cyan-500" />}
-                        label="Total Runs"
-                        value={summary.totalRuns}
-                        bgColor="bg-cyan-500/10"
-                    />
-                    <SummaryCard
-                        icon={<TrendingUp className="w-5 h-5 text-emerald-500" />}
-                        label="Tests Executed"
-                        value={summary.totalTests}
-                        bgColor="bg-emerald-500/10"
-                    />
-                    <SummaryCard
-                        icon={<Zap className="w-5 h-5 text-amber-500" />}
-                        label="AI Usage"
-                        value={summary.totalCost}
-                        bgColor="bg-amber-500/10"
-                    />
-                    <SummaryCard
-                        icon={<Clock className="w-5 h-5 text-purple-500" />}
-                        label="Avg Latency"
-                        value={`${summary.avgLatency}ms`}
-                        bgColor="bg-purple-500/10"
-                    />
-                </div>
-
-                {/* Charts Grid */}
-                <div className="grid grid-cols-2 gap-6">
-                    {/* Usage Trend - Line Chart */}
-                    <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/10 rounded-xl p-5">
-                        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-cyan-500" />
-                            Tests Run Per Day
-                        </h3>
-                        <div className="h-[250px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={usageTrend}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                    <XAxis
-                                        dataKey="date"
-                                        tickFormatter={formatDate}
-                                        stroke="#666"
-                                        fontSize={10}
-                                        tick={{ fill: '#666' }}
-                                    />
-                                    <YAxis stroke="#666" fontSize={10} tick={{ fill: '#666' }} />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1a1a1a',
-                                            border: '1px solid #333',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '12px'
-                                        }}
-                                        labelFormatter={formatDate}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="tests"
-                                        stroke="#06b6d4"
-                                        strokeWidth={2}
-                                        dot={false}
-                                        activeDot={{ r: 4, fill: '#06b6d4' }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
+            <div className="flex-1 overflow-y-auto px-8 pb-8 scrollbar-thin-hover">
+                <div className="space-y-8">
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <SummaryCard
+                            icon={<Activity className="w-5 h-5" />}
+                            label="Total Runs"
+                            value={summary.totalRuns}
+                            variant="cyan"
+                        />
+                        <SummaryCard
+                            icon={<TrendingUp className="w-5 h-5" />}
+                            label="Tests Executed"
+                            value={summary.totalTests}
+                            variant="emerald"
+                        />
+                        <SummaryCard
+                            icon={<Zap className="w-5 h-5" />}
+                            label="AI Usage"
+                            value={summary.totalCost}
+                            variant="amber"
+                        />
+                        <SummaryCard
+                            icon={<Clock className="w-5 h-5" />}
+                            label="Avg Latency"
+                            value={`${summary.avgLatency}ms`}
+                            variant="purple"
+                        />
                     </div>
 
-                    {/* Cost Analysis - Bar Chart */}
-                    <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/10 rounded-xl p-5">
-                        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-amber-500" />
-                            AI Usage Per Day
-                        </h3>
-                        <div className="h-[250px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={costAnalysis}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                    <XAxis
-                                        dataKey="date"
-                                        tickFormatter={formatDate}
-                                        stroke="#666"
-                                        fontSize={10}
-                                        tick={{ fill: '#666' }}
-                                    />
-                                    <YAxis stroke="#666" fontSize={10} tick={{ fill: '#666' }} />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1a1a1a',
-                                            border: '1px solid #333',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '12px'
-                                        }}
-                                        labelFormatter={formatDate}
-                                    />
-                                    <Bar
-                                        dataKey="cost"
-                                        fill="#f59e0b"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* Latency Trend - Area Chart */}
-                    <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/10 rounded-xl p-5">
-                        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-purple-500" />
-                            Average Latency Trend
-                        </h3>
-                        <div className="h-[250px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={latencyTrend}>
-                                    <defs>
-                                        <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                    <XAxis
-                                        dataKey="date"
-                                        tickFormatter={formatDate}
-                                        stroke="#666"
-                                        fontSize={10}
-                                        tick={{ fill: '#666' }}
-                                    />
-                                    <YAxis stroke="#666" fontSize={10} tick={{ fill: '#666' }} />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1a1a1a',
-                                            border: '1px solid #333',
-                                            borderRadius: '8px',
-                                            color: '#fff',
-                                            fontSize: '12px'
-                                        }}
-                                        labelFormatter={formatDate}
-                                        formatter={(value: number) => [`${value}ms`, 'Avg Latency']}
-                                    />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="avgLatency"
-                                        stroke="#a855f7"
-                                        strokeWidth={2}
-                                        fill="url(#latencyGradient)"
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* Slowest Tests Table */}
-                    <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/10 rounded-xl p-5">
-                        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-red-500" />
-                            Slowest Test Cases
-                        </h3>
-                        {slowestTests.length === 0 ? (
-                            <div className="h-[250px] flex items-center justify-center text-slate-500">
-                                No test data available
+                    {/* Charts Grid */}
+                    <div className="grid grid-cols-2 gap-6">
+                        {/* Usage Trend - Line Chart */}
+                        <div className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] shadow-sm rounded-2xl p-6">
+                            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-cyan-500" />
+                                Tests Run Per Day
+                            </h3>
+                            <div className="h-[280px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={usageTrend}>
+                                        <defs>
+                                            <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.1} />
+                                                <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/[0.05]" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={formatDate}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#0f172a',
+                                                border: 'none',
+                                                borderRadius: '12px',
+                                                color: '#fff',
+                                                fontSize: '12px',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                            }}
+                                            labelFormatter={formatDate}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="tests"
+                                            stroke="#06b6d4"
+                                            strokeWidth={3}
+                                            fill="url(#usageGradient)"
+                                            activeDot={{ r: 6, fill: '#06b6d4', strokeWidth: 0 }}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
                             </div>
-                        ) : (
-                            <div className="h-[250px] overflow-y-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="border-white/10 hover:bg-transparent">
-                                            <TableHead className="text-slate-400 text-xs">Input</TableHead>
-                                            <TableHead className="text-slate-400 text-xs w-[80px]">Latency</TableHead>
-                                            <TableHead className="text-slate-400 text-xs w-[60px]">Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {slowestTests.map((test: any, idx: number) => (
-                                            <TableRow key={idx} className="border-white/5 hover:bg-white/5">
-                                                <TableCell className="font-mono text-xs text-slate-300 max-w-[200px] truncate">
-                                                    {test.input}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className={`text-xs font-mono ${test.latencyMs > 3000 ? 'text-red-400' :
-                                                        test.latencyMs > 1000 ? 'text-amber-400' : 'text-emerald-400'
-                                                        }`}>
-                                                        {test.latencyMs}ms
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={`text-[10px] ${test.status === 'success'
-                                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                                            : 'bg-red-500/10 text-red-400 border-red-500/20'
-                                                            }`}
-                                                    >
-                                                        {test.status === 'success' ? 'PASS' : 'FAIL'}
-                                                    </Badge>
-                                                </TableCell>
+                        </div>
+
+                        {/* Cost Analysis - Bar Chart */}
+                        <div className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] shadow-sm rounded-2xl p-6">
+                            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-amber-500" />
+                                AI Usage Per Day
+                            </h3>
+                            <div className="h-[280px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={costAnalysis}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/[0.05]" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={formatDate}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#0f172a',
+                                                border: 'none',
+                                                borderRadius: '12px',
+                                                color: '#fff',
+                                                fontSize: '12px',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                            }}
+                                            labelFormatter={formatDate}
+                                        />
+                                        <Bar
+                                            dataKey="cost"
+                                            fill="#f59e0b"
+                                            radius={[6, 6, 0, 0]}
+                                            maxBarSize={40}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Latency Trend - Area Chart */}
+                        <div className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] shadow-sm rounded-2xl p-6">
+                            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-purple-500" />
+                                Average Latency Trend
+                            </h3>
+                            <div className="h-[280px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={latencyTrend}>
+                                        <defs>
+                                            <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.15} />
+                                                <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/[0.05]" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={formatDate}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#64748b', fontSize: 10, fontWeight: 500 }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#0f172a',
+                                                border: 'none',
+                                                borderRadius: '12px',
+                                                color: '#fff',
+                                                fontSize: '12px',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                            }}
+                                            labelFormatter={formatDate}
+                                            formatter={(value: number) => [`${value}ms`, 'Avg Latency']}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="avgLatency"
+                                            stroke="#a855f7"
+                                            strokeWidth={3}
+                                            fill="url(#latencyGradient)"
+                                            activeDot={{ r: 6, fill: '#a855f7', strokeWidth: 0 }}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Slowest Tests Table */}
+                        <div className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] shadow-sm rounded-2xl p-6">
+                            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 text-rose-500" />
+                                Slowest Test Cases
+                            </h3>
+                            {slowestTests.length === 0 ? (
+                                <div className="h-[280px] flex items-center justify-center text-slate-400 font-medium">
+                                    No test data available
+                                </div>
+                            ) : (
+                                <div className="h-[280px] overflow-y-auto pr-2 scrollbar-thin-hover">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-slate-100 dark:border-white/[0.05] hover:bg-transparent">
+                                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Input</TableHead>
+                                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400 w-[100px]">Latency</TableHead>
+                                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-400 w-[80px]">Status</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        )}
+                                        </TableHeader>
+                                        <TableBody>
+                                            {slowestTests.map((test: any, idx: number) => (
+                                                <TableRow key={idx} className="border-slate-50 dark:border-white/[0.02] hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                                                    <TableCell className="font-mono text-[11px] text-slate-600 dark:text-slate-400 max-w-[200px] truncate py-4">
+                                                        {test.input}
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <span className={cn(
+                                                            "text-[11px] font-bold tabular-nums px-2 py-1 rounded-lg",
+                                                            test.latencyMs > 3000 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' :
+                                                                test.latencyMs > 1000 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                        )}>
+                                                            {test.latencyMs}ms
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-right">
+                                                        <Badge
+                                                            className={cn(
+                                                                "text-[9px] font-black px-2 py-0.5 rounded-md border-0 shadow-none",
+                                                                test.status === 'success'
+                                                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                                            )}
+                                                        >
+                                                            {test.status === 'success' ? 'PASS' : 'FAIL'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -355,20 +390,30 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
     )
 }
 
-function SummaryCard({ icon, label, value, bgColor }: {
+function SummaryCard({ icon, label, value, variant }: {
     icon: React.ReactNode
     label: string
     value: string | number
-    bgColor: string
+    variant: 'cyan' | 'emerald' | 'amber' | 'purple'
 }) {
+    const variants = {
+        cyan: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+        emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+        amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+        purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    }
+
     return (
-        <div className="bg-slate-50 dark:bg-[#0c0c0e] border border-slate-200 dark:border-white/10 rounded-xl p-4 flex items-center gap-4">
-            <div className={`p-2.5 rounded-lg ${bgColor}`}>
+        <div className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] rounded-2xl p-6 flex items-center gap-5 shadow-sm hover:shadow-md transition-all group">
+            <div className={cn(
+                "w-14 h-14 flex items-center justify-center rounded-2xl border-2 transition-all group-hover:scale-110",
+                variants[variant]
+            )}>
                 {icon}
             </div>
             <div>
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">{label}</p>
-                <p className="text-2xl font-bold text-white">{value}</p>
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{label}</p>
+                <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{value}</p>
             </div>
         </div>
     )

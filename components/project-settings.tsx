@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 import { updateProject, deleteProject } from '@/app/actions'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -82,113 +83,133 @@ export function ProjectSettings({
     }
 
     return (
-        <div className="h-full flex flex-col bg-white dark:bg-slate-950 p-6 overflow-y-auto">
+        <div className="h-full flex flex-col bg-slate-50 dark:bg-[#09090b] overflow-hidden">
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Project Settings</h1>
-                <p className="text-slate-400 text-sm">
-                    Manage your project configuration and danger zone
-                </p>
+            <div className="flex-shrink-0 p-8 space-y-6">
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                            <Save className="w-5 h-5" />
+                        </div>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Project Settings</h1>
+                    </div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium ml-1">
+                        Manage your project configuration and account preferences
+                    </p>
+                </div>
             </div>
 
-            <div className="space-y-6 max-w-3xl">
-                {/* General Settings */}
-                <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-                    <CardHeader>
-                        <CardTitle className="text-slate-900 dark:text-white">General Settings</CardTitle>
-                        <CardDescription className="text-slate-400">
-                            Update your project's identity
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Project Name</label>
-                            <Input
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Description</label>
-                            <Textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white min-h-[100px]"
-                            />
-                        </div>
-                        <div className="pt-2">
-                            <Button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="bg-purple-600 hover:bg-purple-700"
-                            >
-                                <Save className="w-4 h-4 mr-2" />
-                                {isSaving ? 'Saving...' : 'Save Changes'}
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Danger Zone */}
-                <Card className="bg-red-900/10 border-red-900/50">
-                    <CardHeader>
-                        <div className="flex items-center gap-2 text-red-400">
-                            <AlertTriangle className="w-5 h-5" />
-                            <CardTitle>Danger Zone</CardTitle>
-                        </div>
-                        <CardDescription className="text-red-400/70">
-                            Irreversible actions for this project
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-between p-4 border border-red-900/30 rounded-lg bg-red-950/30">
-                            <div>
-                                <h3 className="text-white font-medium">Delete Project</h3>
-                                <p className="text-sm text-slate-400 mt-1">
-                                    Permanently remove this project and all its data. This cannot be undone.
-                                </p>
+            <div className="flex-1 overflow-y-auto px-8 pb-12 space-y-8 scrollbar-thin-hover">
+                <div className="max-w-4xl space-y-8">
+                    {/* General Settings */}
+                    <Card className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] rounded-3xl shadow-sm overflow-hidden">
+                        <CardHeader className="p-8 pb-0">
+                            <CardTitle className="text-lg font-black tracking-tight text-slate-900 dark:text-white">General Settings</CardTitle>
+                            <CardDescription className="text-slate-500 font-medium">
+                                Update your project's basic information and identity.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Project Name</label>
+                                <Input
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Enter project name..."
+                                    className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl h-12 px-4 focus-visible:ring-indigo-500/30 font-medium"
+                                />
                             </div>
-                            <Button
-                                variant="destructive"
-                                onClick={() => setShowDeleteDialog(true)}
-                                className="bg-red-600 hover:bg-red-700"
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Project
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Description</label>
+                                <Textarea
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="What does this project do?"
+                                    className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl min-h-[120px] p-4 focus-visible:ring-indigo-500/30 font-medium leading-relaxed"
+                                />
+                            </div>
+                            <div className="pt-2 flex justify-end">
+                                <Button
+                                    onClick={handleSave}
+                                    disabled={isSaving}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 rounded-xl shadow-[0_4px_12px_rgba(79,70,229,0.3)] dark:shadow-[0_4px_12px_rgba(79,70,229,0.15)] flex items-center gap-2"
+                                >
+                                    {isSaving ? (
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <Save className="w-4 h-4" />
+                                    )}
+                                    {isSaving ? 'Updating...' : 'Save Changes'}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Danger Zone */}
+                    <Card className="bg-rose-50/50 dark:bg-rose-500/5 border-2 border-rose-100 dark:border-rose-500/10 rounded-3xl overflow-hidden shadow-sm">
+                        <CardHeader className="p-8 pb-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                                    <AlertTriangle className="w-4 h-4" />
+                                </div>
+                                <CardTitle className="text-lg font-black tracking-tight text-rose-600 dark:text-rose-400">Danger Zone</CardTitle>
+                            </div>
+                            <CardDescription className="text-rose-500/60 font-medium ml-11">
+                                Critical actions that cannot be undone. Please proceed with extreme caution.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8 pt-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 rounded-2xl bg-white dark:bg-[#0c0c0e]/40 border border-rose-200 dark:border-rose-500/20">
+                                <div className="space-y-1">
+                                    <h3 className="text-slate-900 dark:text-white font-black tracking-tight">Delete Project</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                                        Permanently remove this project and all its data.
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => setShowDeleteDialog(true)}
+                                    className="bg-rose-500 hover:bg-rose-600 font-black h-11 px-6 rounded-xl shadow-lg shadow-rose-500/20 flex items-center gap-2 group transition-all"
+                                >
+                                    <Trash2 className="w-4 h-4 group-hover:shake" />
+                                    Delete Project
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent className="bg-slate-900 border-slate-700">
-                    <DialogHeader>
-                        <DialogTitle className="text-white">Are you absolutely sure?</DialogTitle>
-                        <DialogDescription className="text-slate-400">
-                            This action cannot be undone. This will permanently delete the project
-                            <span className="font-bold text-white mx-1">{initialName}</span>
-                            and remove all associated data.
+                <DialogContent className="bg-white dark:bg-[#0c0c0e] border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 rounded-3xl p-0 overflow-hidden max-w-lg shadow-2xl">
+                    <DialogHeader className="p-8 pb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                            <AlertTriangle className="w-6 h-6" />
+                        </div>
+                        <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Are you absolutely sure?</DialogTitle>
+                        <DialogDescription className="text-slate-500 font-medium text-sm mt-2">
+                            This action <span className="text-rose-600 font-bold">cannot be undone</span>. This will permanently delete the project
+                            <span className="font-black text-slate-900 dark:text-white mx-1">"{initialName}"</span>
+                            and all its data.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
-                        <p className="text-sm text-slate-300">
-                            Please type <span className="font-mono text-red-400">{initialName}</span> to confirm.
+                    <div className="px-8 py-4 space-y-6">
+                        <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-relaxed">
+                            Please type <span className="text-rose-600 dark:text-rose-400 font-black px-1.5 py-0.5 bg-rose-500/5 rounded-md">"{initialName}"</span> to confirm.
                         </p>
                         <Input
                             value={deleteConfirmation}
                             onChange={(e) => setDeleteConfirmation(e.target.value)}
-                            className="bg-slate-950 border-slate-700 text-white"
-                            placeholder="Type project name"
+                            className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl h-12 px-4 focus-visible:ring-rose-500/30 font-medium placeholder:text-slate-400"
+                            placeholder="Project name..."
                         />
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="p-8 pt-4 pb-10 flex gap-3 sm:justify-end">
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             onClick={() => setShowDeleteDialog(false)}
-                            className="border-slate-700"
+                            className="text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold h-12 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
                         >
                             Cancel
                         </Button>
@@ -196,9 +217,16 @@ export function ProjectSettings({
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={deleteConfirmation !== initialName || isDeleting}
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-rose-500 hover:bg-rose-600 text-white font-black h-12 px-8 rounded-xl shadow-[0_4px_12px_rgba(244,63,94,0.3)] dark:shadow-[0_4px_12px_rgba(244,63,94,0.15)] disabled:opacity-50 disabled:shadow-none"
                         >
-                            {isDeleting ? 'Deleting...' : 'I understand, delete this project'}
+                            {isDeleting ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span>Deleting...</span>
+                                </div>
+                            ) : (
+                                'I understand, delete project'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

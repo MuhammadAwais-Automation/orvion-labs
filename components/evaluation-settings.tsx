@@ -60,62 +60,62 @@ export function EvaluationSettings({
     }
 
     return (
-        <div className="h-full flex flex-col bg-white dark:bg-slate-950 overflow-hidden">
-            {/* Header - FIXED AT TOP */}
-            <div className="flex-shrink-0 flex items-start justify-between p-6 pb-0">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Evaluation Configuration</h1>
-                    <p className="text-slate-400 text-sm">
-                        Configure how your AI outputs are automatically graded and validated
-                    </p>
+        <div className="h-full flex flex-col bg-slate-50 dark:bg-[#09090b] overflow-hidden">
+            {/* Header */}
+            <div className="flex-shrink-0 p-8">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Evaluation Configuration</h1>
+                        <p className="text-slate-500 dark:text-slate-500 font-medium text-sm">
+                            Configure how your AI outputs are automatically graded and validated
+                        </p>
+                    </div>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving || !currentVersionId}
+                        className="bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] rounded-xl px-6 h-11 text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
+                    >
+                        <Save className="w-4 h-4 mr-2" />
+                        {isSaving ? 'Saving...' : 'Save Configuration'}
+                    </Button>
                 </div>
-                <Button
-                    onClick={handleSave}
-                    disabled={isSaving || !currentVersionId}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg shadow-purple-500/20"
-                >
-                    <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? 'Saving...' : 'Save Configuration'}
-                </Button>
             </div>
 
-            {/* Scrollable Content Area */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-6">
-                {/* Grid Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+            {/* Content area */}
+            <div className="flex-1 overflow-y-auto px-8 pb-8 scrollbar-thin-hover">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* Tone & Style Validator */}
                     <motion.div
                         layout
                         initial={false}
-                        animate={{
-                            scale: config.tone_validator.enabled ? 1.02 : 1,
-                        }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        animate={{ scale: config.tone_validator.enabled ? 1 : 1 }}
+                        className="h-full"
                     >
                         <Card
                             className={cn(
-                                "transition-all duration-300 border",
+                                "h-full transition-all duration-300 border-2 overflow-hidden rounded-2xl",
                                 config.tone_validator.enabled
-                                    ? "bg-white/10 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)] opacity-100"
-                                    : "bg-white/5 border-white/10 opacity-70 grayscale"
+                                    ? "bg-white dark:bg-white/[0.01] border-indigo-500/30 dark:border-indigo-500/20 shadow-xl shadow-indigo-500/5"
+                                    : "bg-white/50 dark:bg-transparent border-slate-200 dark:border-white/[0.05] grayscale opacity-60"
                             )}
                         >
-                            <CardHeader>
+                            <CardHeader className="p-6">
                                 <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4">
                                         <div className={cn(
-                                            "p-2 rounded-lg transition-colors",
-                                            config.tone_validator.enabled ? "bg-cyan-500/20" : "bg-slate-800"
+                                            "w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300",
+                                            config.tone_validator.enabled
+                                                ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                                                : "bg-slate-100 dark:bg-white/[0.05] text-slate-400"
                                         )}>
-                                            <MessageSquare className={cn(
-                                                "w-5 h-5",
-                                                config.tone_validator.enabled ? "text-cyan-400" : "text-slate-400"
-                                            )} />
+                                            <MessageSquare className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-slate-900 dark:text-white">🎭 Tone & Style</CardTitle>
-                                            <CardDescription className="text-slate-400">
+                                            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                                Tone & Style
+                                            </CardTitle>
+                                            <CardDescription className="text-xs font-medium text-slate-500 mt-1">
                                                 Validates response voice and style
                                             </CardDescription>
                                         </div>
@@ -128,40 +128,42 @@ export function EvaluationSettings({
                                                 tone_validator: { ...config.tone_validator, enabled: checked },
                                             })
                                         }
+                                        className="data-[state=checked]:bg-indigo-600"
                                     />
                                 </div>
                             </CardHeader>
-                            <AnimatePresence>
+                            <AnimatePresence initial={false}>
                                 {config.tone_validator.enabled && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="overflow-hidden"
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
                                     >
-                                        <CardContent>
-                                            <div className="space-y-2 pt-2">
-                                                <label className="text-sm text-slate-600 dark:text-slate-300">Expected Tone</label>
-                                                <Select
-                                                    value={config.tone_validator.expected_tone}
-                                                    onValueChange={(value) =>
-                                                        setConfig({
-                                                            ...config,
-                                                            tone_validator: { ...config.tone_validator, expected_tone: value },
-                                                        })
-                                                    }
-                                                >
-                                                    <SelectTrigger className="bg-white dark:bg-slate-950/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-                                                        <SelectItem value="professional">Professional</SelectItem>
-                                                        <SelectItem value="friendly">Friendly</SelectItem>
-                                                        <SelectItem value="humorous">Humorous</SelectItem>
-                                                        <SelectItem value="concise">Concise</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
+                                        <CardContent className="px-6 pb-6 pt-0">
+                                            <div className="pt-4 border-t border-slate-100 dark:border-white/[0.05] space-y-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Expected Tone</label>
+                                                    <Select
+                                                        value={config.tone_validator.expected_tone}
+                                                        onValueChange={(value) =>
+                                                            setConfig({
+                                                                ...config,
+                                                                tone_validator: { ...config.tone_validator, expected_tone: value },
+                                                            })
+                                                        }
+                                                    >
+                                                        <SelectTrigger className="bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-xl h-12">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/[0.1] rounded-xl">
+                                                            <SelectItem value="professional">🤵 Professional</SelectItem>
+                                                            <SelectItem value="friendly">👋 Friendly</SelectItem>
+                                                            <SelectItem value="humorous">😂 Humorous</SelectItem>
+                                                            <SelectItem value="concise">⚡ Concise</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </motion.div>
@@ -174,34 +176,33 @@ export function EvaluationSettings({
                     <motion.div
                         layout
                         initial={false}
-                        animate={{
-                            scale: config.json_validator.enabled ? 1.02 : 1,
-                        }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        animate={{ scale: config.json_validator.enabled ? 1 : 1 }}
+                        className="h-full"
                     >
                         <Card
                             className={cn(
-                                "transition-all duration-300 border h-full",
+                                "h-full transition-all duration-300 border-2 overflow-hidden rounded-2xl",
                                 config.json_validator.enabled
-                                    ? "bg-white/10 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.15)] opacity-100"
-                                    : "bg-white/5 border-white/10 opacity-70 grayscale"
+                                    ? "bg-white dark:bg-white/[0.01] border-emerald-500/30 dark:border-emerald-500/20 shadow-xl shadow-emerald-500/5"
+                                    : "bg-white/50 dark:bg-transparent border-slate-200 dark:border-white/[0.05] grayscale opacity-60"
                             )}
                         >
-                            <CardHeader>
+                            <CardHeader className="p-6">
                                 <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4">
                                         <div className={cn(
-                                            "p-2 rounded-lg transition-colors",
-                                            config.json_validator.enabled ? "bg-green-500/20" : "bg-slate-800"
+                                            "w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300",
+                                            config.json_validator.enabled
+                                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                                : "bg-slate-100 dark:bg-white/[0.05] text-slate-400"
                                         )}>
-                                            <Code className={cn(
-                                                "w-5 h-5",
-                                                config.json_validator.enabled ? "text-green-400" : "text-slate-400"
-                                            )} />
+                                            <Code className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-white">JSON/Format Validator</CardTitle>
-                                            <CardDescription className="text-slate-400">
+                                            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                                JSON/Format Validator
+                                            </CardTitle>
+                                            <CardDescription className="text-xs font-medium text-slate-500 mt-1">
                                                 Ensures valid JSON output structure
                                             </CardDescription>
                                         </div>
@@ -214,6 +215,7 @@ export function EvaluationSettings({
                                                 json_validator: { enabled: checked },
                                             })
                                         }
+                                        className="data-[state=checked]:bg-emerald-600"
                                     />
                                 </div>
                             </CardHeader>
@@ -224,35 +226,33 @@ export function EvaluationSettings({
                     <motion.div
                         layout
                         initial={false}
-                        animate={{
-                            scale: config.custom_rubric.enabled ? 1.02 : 1,
-                        }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        animate={{ scale: config.custom_rubric.enabled ? 1 : 1 }}
                         className="md:col-span-2"
                     >
                         <Card
                             className={cn(
-                                "transition-all duration-300 border",
+                                "h-full transition-all duration-300 border-2 overflow-hidden rounded-2xl",
                                 config.custom_rubric.enabled
-                                    ? "bg-white/10 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.15)] opacity-100"
-                                    : "bg-white/5 border-white/10 opacity-70 grayscale"
+                                    ? "bg-white dark:bg-white/[0.01] border-amber-500/30 dark:border-amber-500/20 shadow-xl shadow-amber-500/5"
+                                    : "bg-white/50 dark:bg-transparent border-slate-200 dark:border-white/[0.05] grayscale opacity-60"
                             )}
                         >
-                            <CardHeader>
+                            <CardHeader className="p-6">
                                 <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4">
                                         <div className={cn(
-                                            "p-2 rounded-lg transition-colors",
-                                            config.custom_rubric.enabled ? "bg-orange-500/20" : "bg-slate-800"
+                                            "w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300",
+                                            config.custom_rubric.enabled
+                                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                                : "bg-slate-100 dark:bg-white/[0.05] text-slate-400"
                                         )}>
-                                            <FileText className={cn(
-                                                "w-5 h-5",
-                                                config.custom_rubric.enabled ? "text-orange-400" : "text-slate-400"
-                                            )} />
+                                            <FileText className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-white">📝 Custom Logic (The Rubric)</CardTitle>
-                                            <CardDescription className="text-slate-400">
+                                            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                                Custom Logic (The Rubric)
+                                            </CardTitle>
+                                            <CardDescription className="text-xs font-medium text-slate-500 mt-1">
                                                 Define custom grading criteria specific to your use case
                                             </CardDescription>
                                         </div>
@@ -265,35 +265,37 @@ export function EvaluationSettings({
                                                 custom_rubric: { ...config.custom_rubric, enabled: checked },
                                             })
                                         }
+                                        className="data-[state=checked]:bg-amber-600"
                                     />
                                 </div>
                             </CardHeader>
-                            <AnimatePresence>
+                            <AnimatePresence initial={false}>
                                 {config.custom_rubric.enabled && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="overflow-hidden"
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
                                     >
-                                        <CardContent>
-                                            <div className="space-y-2 pt-2">
-                                                <label className="text-sm text-slate-600 dark:text-slate-300">Custom Grading Instructions</label>
-                                                <Textarea
-                                                    value={config.custom_rubric.instructions}
-                                                    onChange={(e) =>
-                                                        setConfig({
-                                                            ...config,
-                                                            custom_rubric: {
-                                                                ...config.custom_rubric,
-                                                                instructions: e.target.value,
-                                                            },
-                                                        })
-                                                    }
-                                                    placeholder="e.g., 'Ensure the answer does not mention competitors', 'Must include a call-to-action'"
-                                                    className="bg-white dark:bg-slate-950/50 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white min-h-[120px] font-mono text-sm"
-                                                />
+                                        <CardContent className="px-6 pb-6 pt-0">
+                                            <div className="pt-4 border-t border-slate-100 dark:border-white/[0.05] space-y-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Custom Grading Instructions</label>
+                                                    <Textarea
+                                                        value={config.custom_rubric.instructions}
+                                                        onChange={(e) =>
+                                                            setConfig({
+                                                                ...config,
+                                                                custom_rubric: {
+                                                                    ...config.custom_rubric,
+                                                                    instructions: e.target.value,
+                                                                },
+                                                            })
+                                                        }
+                                                        placeholder="e.g., 'Ensure the answer does not mention competitors', 'Must include a call-to-action'"
+                                                        className="bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl h-32 p-4 font-mono text-xs focus:ring-amber-500/20"
+                                                    />
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </motion.div>

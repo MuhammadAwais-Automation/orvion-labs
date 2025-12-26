@@ -6,6 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
     Settings2,
     Cpu,
     Sparkles,
@@ -14,9 +20,14 @@ import {
     Loader2,
     GitBranch,
     PanelRightClose,
-    PanelRightOpen
+    PanelRightOpen,
+    Plus,
+    X,
+    Braces,
+    Clock
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { VersionHistory } from './version-history'
 
 interface ModelConfig {
     model: string
@@ -25,13 +36,13 @@ interface ModelConfig {
     top_p: number
 }
 
-import { VersionHistory } from './version-history'
-
 interface ConfigurationPanelProps {
     projectId: string
     currentVersionId?: string
     config: ModelConfig
     onConfigChange: (newConfig: ModelConfig) => void
+    variables: Record<string, string>
+    onVariablesChange: (variables: Record<string, string>) => void
     isSaving: boolean
     isSavingNew?: boolean
     hasUnsavedChanges: boolean
@@ -54,6 +65,8 @@ export function ConfigurationPanel({
     currentVersionId,
     config,
     onConfigChange,
+    variables,
+    onVariablesChange,
     isSaving,
     isSavingNew = false,
     hasUnsavedChanges,
@@ -69,225 +82,296 @@ export function ConfigurationPanel({
         onConfigChange({ ...config, [field]: value })
     }
 
+    const addVariable = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        const newKey = `var${Object.keys(variables).length + 1}`
+        onVariablesChange({ ...variables, [newKey]: '' })
+    }
+
+    const updateVariable = (oldKey: string, newKey: string, value: string) => {
+        const updated = { ...variables }
+        if (oldKey !== newKey) {
+            delete updated[oldKey]
+        }
+        updated[newKey] = value
+        onVariablesChange(updated)
+    }
+
+    const removeVariable = (key: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        const updated = { ...variables }
+        delete updated[key]
+        onVariablesChange(updated)
+    }
+
     const currentModel = MODELS.find(m => m.value === config.model)
 
     return (
         <div className={cn(
-            "border-l border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-[#0a0a0b] flex flex-col h-full transition-all",
-            isCollapsed ? "w-12" : "w-[280px]"
+            "flex flex-col h-full bg-slate-50/50 dark:bg-[#09090b] text-slate-600 dark:text-slate-300",
+            isCollapsed && "bg-slate-50 dark:bg-black"
         )}>
             {/* Header */}
-            <div className="flex-shrink-0 h-14 flex items-center justify-between px-3 border-b border-slate-200 dark:border-white/[0.06] bg-white dark:bg-transparent">
+            <div className="flex-shrink-0 h-14 flex items-center justify-between px-4 border-b border-slate-200 dark:border-white/[0.06]">
                 {isCollapsed ? (
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={onToggleCollapse}
-                        className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                        title="Expand Config"
+                        className="h-8 w-8 p-0 mx-auto text-slate-500 hover:text-white hover:bg-white/5"
                     >
                         <PanelRightOpen className="w-4 h-4" />
                     </Button>
                 ) : (
                     <>
                         <div className="flex items-center gap-2">
-                            <Settings2 className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                            <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300" style={{ fontFamily: 'var(--font-sans)' }}>
-                                Config
-                            </h2>
+                            <Settings2 className="w-4 h-4 text-cyan-500" />
+                            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Configuration</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <VersionHistory
-                                projectId={projectId}
-                                currentVersionId={currentVersionId}
-                                onVersionRestored={onVersionRestored}
-                            />
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={onToggleCollapse}
-                                className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                                title="Collapse Config"
-                            >
-                                <PanelRightClose className="w-4 h-4" />
-                            </Button>
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onToggleCollapse}
+                            className="h-8 w-8 p-0 text-slate-500 hover:text-white hover:bg-white/5"
+                        >
+                            <PanelRightClose className="w-4 h-4" />
+                        </Button>
                     </>
                 )}
             </div>
 
-            {/* Scrollable Content - Hidden when collapsed */}
+            {/* Scrollable Content */}
             {!isCollapsed && (
-                <div className="flex-1 overflow-y-auto scrollbar-thin-hover">
+                <div className="flex-1 overflow-y-auto scrollbar-thin-hover px-4 pb-4">
+                    <Accordion type="multiple" defaultValue={["model", "variables", "parameters"]} className="w-full">
 
-                    {/* Model Section */}
-                    <div className="p-5 border-b border-slate-200 dark:border-white/[0.04]">
-                        <Label className="text-[11px] text-slate-500 dark:text-slate-500 font-medium uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                            <Cpu className="w-3 h-3" /> Model
-                        </Label>
-                        <Select
-                            value={config.model}
-                            onValueChange={(val) => updateField('model', val)}
-                        >
-                            <SelectTrigger className="w-full h-10 bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.05] focus:ring-1 focus:ring-cyan-500/30 transition-colors rounded-lg">
-                                <div className="flex items-center justify-between w-full">
-                                    <SelectValue>
-                                        <span className="font-medium">{currentModel?.label}</span>
-                                    </SelectValue>
-                                    {currentModel && (
-                                        <Badge className={cn("text-[9px] ml-2 font-medium", currentModel.badgeColor)}>
-                                            {currentModel.badge}
-                                        </Badge>
-                                    )}
+                        {/* Model Selection */}
+                        <AccordionItem value="model" className="border-slate-200 dark:border-white/[0.04]">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-2">
+                                    <Cpu className="w-3.5 h-3.5 text-blue-600 dark:text-blue-500" />
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Model</span>
                                 </div>
-                            </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-[#141416] border-slate-200 dark:border-white/[0.08] rounded-lg">
-                                {MODELS.map((m) => (
-                                    <SelectItem
-                                        key={m.value}
-                                        value={m.value}
-                                        className="text-slate-700 dark:text-slate-300 focus:bg-slate-100 dark:focus:bg-white/[0.06] focus:text-slate-900 dark:focus:text-white rounded-md"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-medium">{m.label}</span>
-                                            <Badge className={cn("text-[9px] font-medium", m.badgeColor)}>
-                                                {m.badge}
-                                            </Badge>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4">
+                                <Select
+                                    value={config.model}
+                                    onValueChange={(val) => updateField('model', val)}
+                                >
+                                    <SelectTrigger className="w-full h-10 bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-colors rounded-lg">
+                                        <div className="flex items-center justify-between w-full">
+                                            <SelectValue>
+                                                <span className="font-medium text-xs">{currentModel?.label}</span>
+                                            </SelectValue>
                                         </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white dark:bg-[#141416] border-slate-200 dark:border-white/[0.08]">
+                                        {MODELS.map((m) => (
+                                            <SelectItem
+                                                key={m.value}
+                                                value={m.value}
+                                                className="text-slate-700 dark:text-slate-300 focus:bg-slate-100 dark:focus:bg-white/[0.06] focus:text-slate-900 dark:focus:text-white"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-medium text-xs">{m.label}</span>
+                                                    <Badge className={cn("text-[9px] font-medium border-0", m.badgeColor)}>
+                                                        {m.badge}
+                                                    </Badge>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </AccordionContent>
+                        </AccordionItem>
 
-                    {/* Parameters Section */}
-                    <div className="p-5 space-y-5">
-                        <div className="flex items-center gap-2">
-                            <Sparkles className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-500" />
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Parameters</span>
-                        </div>
+                        {/* Variables */}
+                        <AccordionItem value="variables" className="border-slate-200 dark:border-white/[0.04]">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center justify-between w-full pr-4">
+                                    <div className="flex items-center gap-2">
+                                        <Braces className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500" />
+                                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Variables</span>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={addVariable}
+                                        className="h-5 px-1.5 text-[9px] text-cyan-600 dark:text-cyan-500 hover:text-cyan-700 dark:hover:text-cyan-400 hover:bg-cyan-500/10"
+                                    >
+                                        <Plus className="w-3 h-3 mr-1" /> Add
+                                    </Button>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4 space-y-2">
+                                {Object.keys(variables).length === 0 ? (
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-600 italic px-1">
+                                        No variables. Use {"{{name}}"} in prompt.
+                                    </p>
+                                ) : (
+                                    Object.entries(variables).map(([key, value]) => (
+                                        <div key={key} className="flex items-center gap-2 group">
+                                            <input
+                                                type="text"
+                                                value={key}
+                                                onChange={(e) => updateVariable(key, e.target.value, value)}
+                                                placeholder="name"
+                                                className="w-1/3 h-8 px-2 text-[11px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 font-mono"
+                                            />
+                                            <span className="text-slate-300 dark:text-slate-700">=</span>
+                                            <input
+                                                type="text"
+                                                value={value}
+                                                onChange={(e) => updateVariable(key, key, e.target.value)}
+                                                placeholder="value"
+                                                className="flex-1 h-8 px-2 text-[11px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                                            />
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => removeVariable(key, e)}
+                                                className="h-6 w-6 p-0 text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </AccordionContent>
+                        </AccordionItem>
 
-                        {/* Temperature */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs text-slate-600 dark:text-slate-400 font-normal">Temperature</Label>
-                                <span className="text-xs font-mono text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-500/10 px-2 py-0.5 rounded-md">
-                                    {config.temperature.toFixed(1)}
-                                </span>
-                            </div>
-                            <Slider
-                                value={[config.temperature]}
-                                onValueChange={(v) => updateField('temperature', v[0])}
-                                min={0}
-                                max={1}
-                                step={0.1}
-                                className="[&_[role=slider]]:bg-cyan-500 [&_[role=slider]]:border-cyan-400 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-cyan-500/20 [&_[role=slider]]:w-4 [&_[role=slider]]:h-4 [&_.bg-primary]:bg-cyan-500"
-                            />
-                            <p className="text-[10px] text-slate-500 dark:text-slate-600 leading-relaxed">
-                                Lower = focused & deterministic. Higher = creative & random.
-                            </p>
-                        </div>
+                        {/* Parameters */}
+                        <AccordionItem value="parameters" className="border-slate-200 dark:border-white/[0.04]">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500" />
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Parameters</span>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4 space-y-6">
+                                {/* Temperature */}
+                                <div className="space-y-3 px-1">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Temperature</Label>
+                                        <span className="text-[10px] font-mono text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
+                                            {config.temperature.toFixed(1)}
+                                        </span>
+                                    </div>
+                                    <Slider
+                                        value={[config.temperature]}
+                                        onValueChange={(v) => updateField('temperature', v[0])}
+                                        min={0}
+                                        max={1}
+                                        step={0.1}
+                                        className="[&_[role=slider]]:bg-cyan-500 [&_[role=slider]]:border-cyan-400"
+                                    />
+                                </div>
 
-                        {/* Max Tokens */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs text-slate-600 dark:text-slate-400 font-normal">Max Tokens</Label>
-                                <span className="text-xs font-mono text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-500/10 px-2 py-0.5 rounded-md">
-                                    {config.max_tokens.toLocaleString()}
-                                </span>
-                            </div>
-                            <Slider
-                                value={[config.max_tokens]}
-                                onValueChange={(v) => updateField('max_tokens', v[0])}
-                                min={1}
-                                max={4096}
-                                step={1}
-                                className="[&_[role=slider]]:bg-violet-500 [&_[role=slider]]:border-violet-400 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-violet-500/20 [&_[role=slider]]:w-4 [&_[role=slider]]:h-4 [&_.bg-primary]:bg-violet-500"
-                            />
-                        </div>
+                                {/* Max Tokens */}
+                                <div className="space-y-3 px-1">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Max Tokens</Label>
+                                        <span className="text-[10px] font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                                            {config.max_tokens}
+                                        </span>
+                                    </div>
+                                    <Slider
+                                        value={[config.max_tokens]}
+                                        onValueChange={(v) => updateField('max_tokens', v[0])}
+                                        min={1}
+                                        max={4096}
+                                        step={1}
+                                        className="[&_[role=slider]]:bg-purple-500 [&_[role=slider]]:border-purple-400"
+                                    />
+                                </div>
 
-                        {/* Top P */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs text-slate-600 dark:text-slate-400 font-normal">Top P</Label>
-                                <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                                    {config.top_p.toFixed(2)}
-                                </span>
-                            </div>
-                            <Slider
-                                value={[config.top_p]}
-                                onValueChange={(v) => updateField('top_p', v[0])}
-                                min={0}
-                                max={1}
-                                step={0.01}
-                                className="[&_[role=slider]]:bg-emerald-500 [&_[role=slider]]:border-emerald-400 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-emerald-500/20 [&_[role=slider]]:w-4 [&_[role=slider]]:h-4 [&_.bg-primary]:bg-emerald-500"
-                            />
-                        </div>
-                    </div>
+                                {/* Top P */}
+                                <div className="space-y-3 px-1">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Top P</Label>
+                                        <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                            {config.top_p.toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <Slider
+                                        value={[config.top_p]}
+                                        onValueChange={(v) => updateField('top_p', v[0])}
+                                        min={0}
+                                        max={1}
+                                        step={0.01}
+                                        className="[&_[role=slider]]:bg-emerald-500 [&_[role=slider]]:border-emerald-400"
+                                    />
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+
+
+                        {/* History */}
+                        <AccordionItem value="history" className="border-0">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">History</span>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4">
+                                <VersionHistory
+                                    projectId={projectId}
+                                    currentVersionId={currentVersionId}
+                                    onVersionRestored={onVersionRestored}
+                                />
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                 </div>
             )}
 
-            {/* Version Control Footer */}
-            <div className="flex-shrink-0 border-t border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#08080a]">
-                {/* Unsaved Indicator */}
-                {hasUnsavedChanges && (
-                    <div className="px-5 py-2 border-b border-slate-200 dark:border-white/[0.04]">
-                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" />
-                            <span className="text-[10px] font-medium uppercase tracking-wider">Unsaved changes</span>
+            {/* Footer */}
+            {!isCollapsed && (
+                <div className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-white/[0.06] bg-slate-100/30 dark:bg-black/20 space-y-3">
+                    {hasUnsavedChanges && (
+                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500/80 mb-2">
+                            <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest">Unsaved Changes</span>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Action Buttons */}
-                <div className="p-4 space-y-2">
-                    {/* Primary: Save Changes */}
-                    <Button
-                        className={cn(
-                            "w-full h-10 text-sm font-medium transition-all duration-200",
-                            hasUnsavedChanges
-                                ? "bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/30"
-                                : "bg-slate-100 dark:bg-white/[0.04] text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-white/[0.06]"
-                        )}
-                        onClick={onSave}
-                        disabled={isSaving || !hasUnsavedChanges}
-                    >
-                        {isSaving ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Save className="w-4 h-4 mr-2" />
-                        )}
-                        Save Changes
-                    </Button>
-
-                    {/* Secondary: Save as New Version */}
-                    {onSaveAsNew && (
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button
+                            className={cn(
+                                "h-9 text-[10px] font-bold uppercase tracking-wider transition-all",
+                                hasUnsavedChanges
+                                    ? "bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20"
+                                    : "bg-slate-200 dark:bg-white/5 text-slate-500 dark:text-slate-500 hover:bg-slate-300 dark:hover:bg-white/10"
+                            )}
+                            onClick={onSave}
+                            disabled={isSaving || !hasUnsavedChanges}
+                        >
+                            {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3 mr-2" />}
+                            Save
+                        </Button>
                         <Button
                             variant="outline"
-                            className="w-full h-10 text-sm font-medium border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-300 hover:border-emerald-500/30 transition-all duration-200"
+                            className="h-9 text-[10px] font-bold uppercase tracking-wider border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-500 transition-all"
                             onClick={onSaveAsNew}
                             disabled={isSavingNew}
                         >
-                            {isSavingNew ? (
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                                <GitBranch className="w-4 h-4 mr-2" />
-                            )}
-                            Save as New Version
+                            {isSavingNew ? <Loader2 className="w-3 h-3 animate-spin" /> : <GitBranch className="w-3 h-3 mr-2" />}
+                            Branch
                         </Button>
-                    )}
+                    </div>
 
-                    {/* Tertiary: Reset */}
                     <Button
                         variant="ghost"
-                        className="w-full h-8 text-xs text-slate-500 dark:text-slate-600 hover:text-slate-700 dark:hover:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.03] transition-colors"
+                        className="w-full h-8 text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-600 hover:text-slate-700 dark:hover:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5"
                         onClick={onReset}
                     >
                         <RotateCcw className="w-3 h-3 mr-2" />
-                        Reset to Defaults
+                        Reset Defaults
                     </Button>
                 </div>
-            </div>
+            )}
+
         </div>
     )
 }

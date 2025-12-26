@@ -73,35 +73,35 @@ export function TestCaseDialogs({
         <>
             {/* Add Dialog */}
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                <DialogContent className="bg-[#18181b] border-white/10 text-slate-200">
-                    <DialogHeader>
-                        <DialogTitle className="text-white">Add Test Case</DialogTitle>
+                <DialogContent className="bg-white dark:bg-[#0c0c0e] border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 rounded-3xl p-0 overflow-hidden max-w-lg shadow-2xl">
+                    <DialogHeader className="p-8 pb-4">
+                        <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Add Test Case</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Input (Required)</label>
+                    <div className="px-8 py-4 space-y-6">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Input (Required)</label>
                             <Textarea
                                 value={newTestCase.input}
                                 onChange={(e) => setNewTestCase({ ...newTestCase, input: e.target.value })}
                                 placeholder="User input..."
-                                className="bg-black/40 border-white/10 text-white min-h-[100px]"
+                                className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl min-h-[120px] p-4 focus-visible:ring-indigo-500/30 font-medium placeholder:text-slate-400"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-slate-300">Expected Output (Optional)</label>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between ml-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Expected Output (Optional)</label>
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
                                     disabled={isGenerating || !newTestCase.input.trim()}
                                     onClick={() => handleGenerate(newTestCase.input, 'add')}
-                                    className="h-7 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                                    className="h-8 text-[10px] font-black uppercase tracking-widest text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/5 px-3 rounded-xl transition-all"
                                 >
                                     {isGenerating ? (
-                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                        <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
                                     ) : (
-                                        <Sparkles className="w-3 h-3 mr-1" />
+                                        <Sparkles className="w-3.5 h-3.5 mr-2" />
                                     )}
                                     Auto-Generate
                                 </Button>
@@ -110,53 +110,64 @@ export function TestCaseDialogs({
                                 value={newTestCase.expected}
                                 onChange={(e) => setNewTestCase({ ...newTestCase, expected: e.target.value })}
                                 placeholder="Expected AI response..."
-                                className="bg-black/40 border-white/10 text-white min-h-[100px]"
+                                className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl min-h-[120px] p-4 focus-visible:ring-indigo-500/30 font-medium placeholder:text-slate-400"
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setShowAddDialog(false)} className="text-slate-400 hover:text-white">Cancel</Button>
-                        <Button onClick={async () => {
-                            const success = await onAdd(newTestCase.input, newTestCase.expected)
-                            if (success) {
-                                setShowAddDialog(false)
-                                setNewTestCase({ input: '', expected: '' })
-                            }
-                        }} className="bg-cyan-600 hover:bg-cyan-700 text-white">Add Case</Button>
+                    <DialogFooter className="p-8 pt-4 pb-10 flex gap-3 sm:justify-end">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowAddDialog(false)}
+                            className="text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold h-12 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                const success = await onAdd(newTestCase.input, newTestCase.expected)
+                                if (success) {
+                                    setShowAddDialog(false)
+                                    setNewTestCase({ input: '', expected: '' })
+                                }
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 rounded-xl shadow-[0_4px_12px_rgba(79,70,229,0.3)] dark:shadow-[0_4px_12px_rgba(79,70,229,0.15)] group"
+                        >
+                            Add Case
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Edit Dialog */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                <DialogContent className="bg-[#18181b] border-white/10 text-slate-200">
-                    <DialogHeader>
-                        <DialogTitle className="text-white">Edit Test Case</DialogTitle>
+                <DialogContent className="bg-white dark:bg-[#0c0c0e] border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 rounded-3xl p-0 overflow-hidden max-w-lg shadow-2xl">
+                    <DialogHeader className="p-8 pb-4">
+                        <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Edit Test Case</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Input (Required)</label>
+                    <div className="px-8 py-4 space-y-6">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Input (Required)</label>
                             <Textarea
                                 value={editForm.input}
                                 onChange={(e) => setEditForm({ ...editForm, input: e.target.value })}
-                                className="bg-black/40 border-white/10 text-white min-h-[100px]"
+                                className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl min-h-[120px] p-4 focus-visible:ring-indigo-500/30 font-medium"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-slate-300">Expected Output (Optional)</label>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between ml-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Expected Output (Optional)</label>
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
                                     disabled={isGenerating || !editForm.input.trim()}
                                     onClick={() => handleGenerate(editForm.input, 'edit')}
-                                    className="h-7 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                                    className="h-8 text-[10px] font-black uppercase tracking-widest text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/5 px-3 rounded-xl transition-all"
                                 >
                                     {isGenerating ? (
-                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                        <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
                                     ) : (
-                                        <Sparkles className="w-3 h-3 mr-1" />
+                                        <Sparkles className="w-3.5 h-3.5 mr-2" />
                                     )}
                                     Auto-Generate
                                 </Button>
@@ -164,46 +175,68 @@ export function TestCaseDialogs({
                             <Textarea
                                 value={editForm.expected}
                                 onChange={(e) => setEditForm({ ...editForm, expected: e.target.value })}
-                                className="bg-black/40 border-white/10 text-white min-h-[100px]"
+                                className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl min-h-[120px] p-4 focus-visible:ring-indigo-500/30 font-medium"
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="text-slate-400 hover:text-white">Cancel</Button>
-                        <Button onClick={async () => {
-                            const success = await onEdit(editForm.id, editForm.input, editForm.expected)
-                            if (success) setShowEditDialog(false)
-                        }} className="bg-cyan-600 hover:bg-cyan-700 text-white">Save Changes</Button>
+                    <DialogFooter className="p-8 pt-4 pb-10 flex gap-3 sm:justify-end">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowEditDialog(false)}
+                            className="text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold h-12 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                const success = await onEdit(editForm.id, editForm.input, editForm.expected)
+                                if (success) setShowEditDialog(false)
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 rounded-xl shadow-[0_4px_12px_rgba(79,70,229,0.3)] dark:shadow-[0_4px_12px_rgba(79,70,229,0.15)]"
+                        >
+                            Save Changes
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Import Dialog */}
             <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-                <DialogContent className="bg-[#18181b] border-white/10 text-slate-200">
-                    <DialogHeader>
-                        <DialogTitle className="text-white">Import Test Cases</DialogTitle>
+                <DialogContent className="bg-white dark:bg-[#0c0c0e] border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 rounded-3xl p-0 overflow-hidden max-w-lg shadow-2xl">
+                    <DialogHeader className="p-8 pb-4">
+                        <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Import Test Cases</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <p className="text-xs text-slate-400">
-                            Paste a JSON array of test cases. format: <code className="text-cyan-500">[ {'{ "input": "...", "expected_output": "..." }'} ]</code>
+                    <div className="px-8 py-4 space-y-4">
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                            Paste a JSON array of test cases. format: <code className="text-cyan-600 dark:text-cyan-500 font-bold">[ {'{ "input": "...", "expected_output": "..." }'} ]</code>
                         </p>
                         <Textarea
                             value={importJson}
                             onChange={(e) => setImportJson(e.target.value)}
                             placeholder='[ { "input": "hello", "expected_output": "world" } ]'
-                            className="bg-black/40 border-white/10 text-white min-h-[200px] font-mono text-xs"
+                            className="bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.05] text-slate-900 dark:text-white rounded-2xl min-h-[220px] p-6 font-mono text-xs focus-visible:ring-indigo-500/30 leading-relaxed scrollbar-thin-hover"
                         />
                     </div>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setShowImportDialog(false)} className="text-slate-400 hover:text-white">Cancel</Button>
-                        <Button onClick={async () => {
-                            const success = await onImport(importJson)
-                            if (success) {
-                                setShowImportDialog(false)
-                                setImportJson('')
-                            }
-                        }} className="bg-cyan-600 hover:bg-cyan-700 text-white">Import</Button>
+                    <DialogFooter className="p-8 pt-4 pb-10 flex gap-3 sm:justify-end">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowImportDialog(false)}
+                            className="text-slate-500 hover:text-slate-900 dark:hover:text-white font-bold h-12 px-6 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={async () => {
+                                const success = await onImport(importJson)
+                                if (success) {
+                                    setShowImportDialog(false)
+                                    setImportJson('')
+                                }
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 px-8 rounded-xl shadow-[0_4px_12px_rgba(79,70,229,0.3)] dark:shadow-[0_4px_12px_rgba(79,70,229,0.15)]"
+                        >
+                            Import
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
