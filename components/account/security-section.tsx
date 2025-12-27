@@ -1,10 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, AlertCircle } from 'lucide-react'
+import { Lock, Eye, EyeOff, Check, Loader2, AlertCircle, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createBrowserClient } from '@supabase/ssr'
 import { toast } from 'sonner'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
+import { deleteAccount } from '@/app/login/actions'
+import { useRouter } from 'next/navigation'
 
 function validatePassword(password: string): { valid: boolean; errors: string[] } {
     const errors: string[] = []
@@ -60,6 +71,26 @@ export function SecuritySection() {
             setPasswordError(err.message || 'Failed to update password')
         } finally {
             setIsSaving(false)
+        }
+    }
+
+    const [isDeleting, setIsDeleting] = useState(false)
+    const router = useRouter()
+
+    const handleDeleteAccount = async () => {
+        setIsDeleting(true)
+        try {
+            const result = await deleteAccount()
+            if (result.success) {
+                toast.success('Account deleted successfully')
+                router.push('/login')
+            } else {
+                toast.error(result.error || 'Failed to delete account')
+            }
+        } catch (err: any) {
+            toast.error('An unexpected error occurred')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -168,6 +199,76 @@ export function SecuritySection() {
                             </>
                         )}
                     </Button>
+                </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-8 space-y-6">
+                <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                    <div className="p-2 bg-red-500/10 rounded-lg">
+                        <Trash2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold tracking-tight">Danger Zone</h3>
+                        <p className="text-xs opacity-80">Irreversible actions for your account</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white dark:bg-zinc-900 border border-red-500/20 rounded-lg">
+                    <div className="space-y-1">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white">Delete Account</p>
+                        <p className="text-xs text-gray-500 dark:text-zinc-500">Permanently remove all your projects, data and account access.</p>
+                    </div>
+
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 dark:border-red-500/30 font-bold"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Account
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                            <DialogHeader>
+                                <DialogTitle className="text-red-600">Are you absolutely sure?</DialogTitle>
+                                <DialogDescription className="text-gray-500 dark:text-zinc-400 pt-2">
+                                    This action cannot be undone. This will permanently delete your
+                                    account and remove all of your projects, test runs, and custom data from our servers.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter className="mt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={isDeleting}
+                                    onClick={() => {
+                                        const close = document.querySelector('[data-state="open"] button[aria-label="Close"]') as HTMLButtonElement;
+                                        close?.click();
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={handleDeleteAccount}
+                                    disabled={isDeleting}
+                                    className="bg-red-600 hover:bg-red-700"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        'Yes, Delete Everything'
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>

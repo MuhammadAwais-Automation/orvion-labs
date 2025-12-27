@@ -76,7 +76,7 @@ export function useAuthForm() {
                 setIsSuccess(true)
                 toast.success('Check your email to confirm account!')
                 setTimeout(() => {
-                    router.push('/')
+                    router.push('/verify-email')
                 }, 2000)
             }
         } catch (err: any) {

@@ -117,3 +117,59 @@ export async function signOut() {
     revalidatePath('/', 'layout')
     redirect('/login')
 }
+
+export async function deleteAccount() {
+    console.log('[DELETE ACCOUNT] Action called')
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        console.error('[DELETE ACCOUNT] No authenticated user found')
+        return { success: false, error: 'User not authenticated' }
+    }
+
+    console.log('[DELETE ACCOUNT] Deleting data for user:', user.id)
+
+    // Delete profile (cascading deletes will handle the rest in the database)
+    const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id)
+
+    if (profileError) {
+        console.error('[DELETE ACCOUNT] Profile deletion error:', profileError.message)
+        return { success: false, error: profileError.message }
+    }
+
+    // Delete user from Auth using Admin API
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (serviceRoleKey) {
+        try {
+            // Create admin client with service role key
+            const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+            const supabaseAdmin = createAdminClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                serviceRoleKey,
+                { auth: { autoRefreshToken: false, persistSession: false } }
+            )
+
+            const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+            if (authDeleteError) {
+                console.error('[DELETE ACCOUNT] Auth deletion error:', authDeleteError.message)
+            } else {
+                console.log('[DELETE ACCOUNT] Auth user deleted successfully')
+            }
+        } catch (err: any) {
+            console.error('[DELETE ACCOUNT] Admin API error:', err.message)
+        }
+    } else {
+        console.warn('[DELETE ACCOUNT] Service role key not found, only profile deleted')
+        // Sign out the user if we can't delete from auth
+        await supabase.auth.signOut()
+    }
+
+    console.log('[DELETE ACCOUNT] Success! Account fully removed.')
+
+    revalidatePath('/', 'layout')
+    return { success: true }
+}

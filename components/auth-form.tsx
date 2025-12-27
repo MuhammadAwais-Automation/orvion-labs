@@ -11,7 +11,6 @@ import { useAuthForm } from "@/hooks/use-auth-form"
 // Components
 import { Button } from "@/components/ui/button"
 import { AuthVisuals } from "./auth/auth-visuals"
-import { AuthLoadingOverlay } from "./auth/auth-loading-overlay"
 
 export function AuthForm() {
     const {
@@ -31,7 +30,6 @@ export function AuthForm() {
 
     return (
         <div className="min-h-screen w-full flex bg-slate-950 text-white overflow-hidden">
-            <AuthLoadingOverlay isVisible={isLoading} mode={mode} />
             {/* Left Column: Form (40%) */}
             <div className="w-full lg:w-[40%] flex flex-col justify-center px-8 sm:px-12 lg:px-20 pt-20 pb-10 relative z-10 bg-slate-950 border-r border-slate-900">
                 <div className="mb-12">
