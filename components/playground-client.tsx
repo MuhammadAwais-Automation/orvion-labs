@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import {
     Send, Bot, User, Loader2,
     MessageSquare, Code2,
-    Trash2, Sparkles, Settings2, Clock, Braces
+    Trash2, Sparkles, Settings2, Clock, Braces,
+    History as HistoryIcon
 } from 'lucide-react'
 import { ConfigurationPanel } from '@/components/playground/configuration-panel'
 import { SyntaxHighlightedEditor } from '@/components/playground/syntax-highlighted-editor'
@@ -33,6 +34,7 @@ interface PlaygroundClientProps {
     initialSystemPrompt: string
     initialModelConfig: ModelConfig
     currentVersion: number
+    activeVersionId?: string
 }
 
 export function PlaygroundClient({
@@ -41,6 +43,7 @@ export function PlaygroundClient({
     initialSystemPrompt,
     initialModelConfig,
     currentVersion,
+    activeVersionId,
 }: PlaygroundClientProps) {
     const configPanelRef = useRef<ImperativePanelHandle>(null)
     const [isConfigCollapsed, setIsConfigCollapsed] = useState(false)
@@ -138,13 +141,17 @@ export function PlaygroundClient({
                                             v{currentVersion}
                                         </button>
                                     </SheetTrigger>
-                                    <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0 bg-white dark:bg-[#0c0c0e]">
-                                        <SheetHeader className="p-4 border-b border-slate-200 dark:border-white/[0.06]">
-                                            <SheetTitle className="text-sm font-bold text-slate-700 dark:text-slate-300">Version History</SheetTitle>
+                                    <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0 bg-white dark:bg-[#0c0c0e] flex flex-col">
+                                        <SheetHeader className="p-4 border-b border-slate-200 dark:border-white/[0.06] flex-shrink-0">
+                                            <SheetTitle className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                                <HistoryIcon className="w-4 h-4 text-cyan-500" />
+                                                Version History
+                                            </SheetTitle>
                                         </SheetHeader>
-                                        <div className="p-4 overflow-y-auto h-[calc(100vh-60px)]">
+                                        <div className="flex-1 overflow-hidden">
                                             <VersionHistory
                                                 projectId={projectId}
+                                                currentVersionId={activeVersionId}
                                                 onVersionRestored={() => {
                                                     router.refresh()
                                                     setShowHistoryPanel(false)
@@ -338,13 +345,17 @@ export function PlaygroundClient({
                                                 v{currentVersion}
                                             </button>
                                         </SheetTrigger>
-                                        <SheetContent side="right" className="w-[350px] p-0 bg-white dark:bg-[#0c0c0e]">
-                                            <SheetHeader className="p-4 border-b border-slate-200 dark:border-white/[0.06]">
-                                                <SheetTitle className="text-sm font-bold text-slate-700 dark:text-slate-300">Version History</SheetTitle>
+                                        <SheetContent side="right" className="w-[350px] p-0 bg-white dark:bg-[#0c0c0e] flex flex-col">
+                                            <SheetHeader className="p-4 border-b border-slate-200 dark:border-white/[0.06] flex-shrink-0">
+                                                <SheetTitle className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                                    <HistoryIcon className="w-4 h-4 text-cyan-500" />
+                                                    Version History
+                                                </SheetTitle>
                                             </SheetHeader>
-                                            <div className="p-4 overflow-y-auto h-[calc(100vh-60px)]">
+                                            <div className="flex-1 overflow-hidden">
                                                 <VersionHistory
                                                     projectId={projectId}
+                                                    currentVersionId={activeVersionId}
                                                     onVersionRestored={() => {
                                                         router.refresh()
                                                         setShowHistoryPanel(false)

@@ -54,6 +54,7 @@ export default async function PlaygroundPage({
             initialSystemPrompt={initialSystemPrompt}
             initialModelConfig={initialModelConfig}
             currentVersion={currentVersionNumber}
+            activeVersionId={project.current_version_id}
         />
     )
 }
