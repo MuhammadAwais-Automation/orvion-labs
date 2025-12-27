@@ -1,3 +1,5 @@
+'use client'
+
 import {
     Table,
     TableBody,
@@ -8,9 +10,10 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Clock, Zap, Pencil, Trash2, Loader2, Gauge } from 'lucide-react'
+import { Clock, Zap, Pencil, Trash2, Loader2, Gauge, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useIsMobile } from '@/hooks/use-media-query'
 
 interface TestCase {
     id: string
@@ -53,6 +56,87 @@ export function TestSuiteTable({
     onDeleteClick,
     onRowClick
 }: TestSuiteTableProps) {
+    const isMobile = useIsMobile()
+
+    // Mobile: Card list layout
+    if (isMobile) {
+        return (
+            <div className="p-3 space-y-2">
+                {filteredTestCases.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-400 opacity-50">
+                        <Gauge className="w-8 h-8" />
+                        <p className="text-sm font-medium text-center">
+                            {searchQuery ? 'No matching test cases found.' : 'No test cases yet. Add one to get started.'}
+                        </p>
+                    </div>
+                ) : (
+                    filteredTestCases.map((testCase) => {
+                        const result = results.get(testCase.id)
+                        return (
+                            <div
+                                key={testCase.id}
+                                onClick={() => onRowClick(testCase)}
+                                className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] rounded-xl p-3.5 active:scale-[0.98] transition-all cursor-pointer"
+                            >
+                                <div className="flex items-start gap-3">
+                                    {/* Status indicator */}
+                                    <div className="pt-1">
+                                        {result ? (
+                                            result.status === 'success' ? (
+                                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                            ) : (
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+                                            )
+                                        ) : isRunning ? (
+                                            <Loader2 className="w-3 h-3 text-cyan-500 animate-spin" />
+                                        ) : (
+                                            <div className="w-2.5 h-2.5 rounded-full border-2 border-slate-300 dark:border-white/20" />
+                                        )}
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-mono text-xs text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed">
+                                            {testCase.input_text}
+                                        </p>
+                                        {testCase.expected_output && (
+                                            <p className="mt-1.5 text-[10px] text-slate-400 dark:text-slate-500 line-clamp-1">
+                                                Expected: {testCase.expected_output}
+                                            </p>
+                                        )}
+
+                                        {/* Metrics row */}
+                                        {result && (
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="flex items-center gap-1 text-[10px] text-slate-400 font-mono bg-slate-100 dark:bg-white/[0.04] px-1.5 py-0.5 rounded">
+                                                    <Clock className="w-2.5 h-2.5" />
+                                                    {result.latency_ms}ms
+                                                </span>
+                                                <span className="flex items-center gap-1 text-[10px] text-slate-400 font-mono bg-slate-100 dark:bg-white/[0.04] px-1.5 py-0.5 rounded">
+                                                    <Zap className="w-2.5 h-2.5" />
+                                                    {result.tokens_used}
+                                                </span>
+                                                {result.total_cost !== undefined && result.total_cost > 0 && (
+                                                    <span className="text-[10px] text-amber-600 font-mono bg-amber-500/10 px-1.5 py-0.5 rounded">
+                                                        {result.total_cost} credits
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Action arrow */}
+                                    <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0 mt-1" />
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+            </div>
+        )
+    }
+
+    // Desktop: Table layout
     return (
         <Table>
             <TableHeader className="sticky top-0 z-10 bg-white/80 dark:bg-[#0c0c0e]/80 backdrop-blur-md">

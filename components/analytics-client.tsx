@@ -108,22 +108,22 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-[#09090b] overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 p-8">
-                <div className="flex items-start justify-between">
+            <div className="flex-shrink-0 p-4 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
-                                <BarChart3 className="w-5 h-5" />
+                            <div className="w-8 md:w-10 h-8 md:h-10 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500">
+                                <BarChart3 className="w-4 md:w-5 h-4 md:h-5" />
                             </div>
-                            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Project Analytics</h1>
+                            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Project Analytics</h1>
                         </div>
-                        <p className="text-slate-500 dark:text-slate-500 font-medium text-sm ml-1">
+                        <p className="text-slate-500 dark:text-slate-500 font-medium text-xs md:text-sm ml-1">
                             {projectName} • Last {selectedRange === 'all' ? 'year' : selectedRange.replace('d', ' days')}
                         </p>
                     </div>
 
                     {/* Date Range Picker - Pill Style */}
-                    <div className="flex items-center gap-1 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] p-1 rounded-2xl shadow-sm">
+                    <div className="flex items-center gap-1 bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] p-1 rounded-2xl shadow-sm w-full md:w-auto overflow-x-auto">
                         {(['7d', '30d', '90d', 'all'] as DateRange[]).map((range) => (
                             <Button
                                 key={range}
@@ -131,7 +131,7 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
                                 size="sm"
                                 onClick={() => setSelectedRange(range)}
                                 className={cn(
-                                    "text-[10px] font-bold uppercase tracking-widest h-9 px-4 rounded-xl transition-all",
+                                    "text-[10px] font-bold uppercase tracking-widest h-9 px-3 md:px-4 rounded-xl transition-all flex-1 md:flex-none",
                                     selectedRange === range
                                         ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-600"
                                         : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -145,7 +145,7 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-8 pb-8 scrollbar-thin-hover">
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 md:pb-8 scrollbar-thin-hover">
                 <div className="space-y-8">
                     {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -176,7 +176,7 @@ export function AnalyticsClient({ projectId, projectName }: AnalyticsClientProps
                     </div>
 
                     {/* Charts Grid */}
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Usage Trend - Line Chart */}
                         <div className="bg-white dark:bg-white/[0.01] border-2 border-slate-200 dark:border-white/[0.05] shadow-sm rounded-2xl p-6">
                             <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">

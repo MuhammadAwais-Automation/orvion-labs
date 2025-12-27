@@ -62,18 +62,18 @@ export function EvaluationSettings({
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-[#09090b] overflow-hidden">
             {/* Header */}
-            <div className="flex-shrink-0 p-8">
-                <div className="flex items-start justify-between">
+            <div className="flex-shrink-0 p-4 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Evaluation Configuration</h1>
-                        <p className="text-slate-500 dark:text-slate-500 font-medium text-sm">
+                        <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Evaluation Configuration</h1>
+                        <p className="text-slate-500 dark:text-slate-500 font-medium text-xs md:text-sm">
                             Configure how your AI outputs are automatically graded and validated
                         </p>
                     </div>
                     <Button
                         onClick={handleSave}
                         disabled={isSaving || !currentVersionId}
-                        className="bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] rounded-xl px-6 h-11 text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
+                        className="bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] rounded-xl px-4 md:px-6 h-10 md:h-11 text-xs font-bold uppercase tracking-widest transition-all active:scale-95 w-full md:w-auto"
                     >
                         <Save className="w-4 h-4 mr-2" />
                         {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -82,7 +82,8 @@ export function EvaluationSettings({
             </div>
 
             {/* Content area */}
-            <div className="flex-1 overflow-y-auto px-8 pb-8 scrollbar-thin-hover">
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 md:pb-8 scrollbar-thin-hover">
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* Tone & Style Validator */}

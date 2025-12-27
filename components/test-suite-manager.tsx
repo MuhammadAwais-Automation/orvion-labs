@@ -70,7 +70,7 @@ export function TestSuiteManager({
             <div className="h-full flex flex-col bg-slate-50 dark:bg-[#09090b] overflow-hidden">
                 <TestRunIndicator isRestoring={isRestoring} />
 
-                <div className="flex-shrink-0 p-6 space-y-8">
+                <div className="flex-shrink-0 p-4 md:p-6 space-y-6 md:space-y-8">
                     <div className="flex flex-col gap-1">
                         <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Test Suites</h1>
                         <p className="text-xs text-slate-500 dark:text-slate-500 font-medium">Manage and run regression tests for <span className="text-cyan-600 dark:text-cyan-500 font-bold">{projectName}</span></p>
@@ -94,7 +94,8 @@ export function TestSuiteManager({
                     />
                 </div>
 
-                <div className="flex-1 mx-6 mb-6 border border-slate-200 dark:border-white/[0.08] rounded-2xl overflow-hidden bg-white dark:bg-[#0c0c0e]/50 flex flex-col min-h-0 shadow-sm dark:shadow-none">
+                <div className="flex-1 mx-4 md:mx-6 mb-4 md:mb-6 border border-slate-200 dark:border-white/[0.08] rounded-2xl overflow-hidden bg-white dark:bg-[#0c0c0e]/50 flex flex-col min-h-0 shadow-sm dark:shadow-none">
+
                     <div className="flex-1 overflow-y-auto scrollbar-thin-hover">
                         <TestSuiteTable
                             filteredTestCases={filteredTestCases}
@@ -113,16 +114,16 @@ export function TestSuiteManager({
 
                 {/* Details Sheet */}
                 <Sheet open={!!selectedTestCase && !showEditDialog && !showAddDialog && !showImportDialog} onOpenChange={(open) => !open && setSelectedTestCase(null)}>
-                    <SheetContent className="w-[640px] bg-white dark:bg-[#0c0c0e] border-l-2 border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 sm:max-w-[640px] p-0 overflow-hidden flex flex-col shadow-2xl">
-                        <SheetHeader className="p-10 border-b border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.01]">
+                    <SheetContent className="w-full sm:w-[640px] bg-white dark:bg-[#0c0c0e] border-l-2 border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-slate-100 sm:max-w-[640px] p-0 overflow-hidden flex flex-col shadow-2xl">
+                        <SheetHeader className="p-5 md:p-10 border-b border-slate-100 dark:border-white/[0.04] bg-slate-50/50 dark:bg-white/[0.01]">
                             <div className="flex items-center justify-between mb-2">
-                                <SheetTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                                <SheetTitle className="text-lg md:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                                     Test Case Details
                                 </SheetTitle>
                                 {selectedResult && (
                                     <Badge
                                         className={cn(
-                                            "text-[10px] font-black px-3 py-1.5 rounded-full border-0 shadow-lg",
+                                            "text-[10px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-full border-0 shadow-lg",
                                             selectedResult.status === 'success'
                                                 ? 'bg-emerald-500 text-white shadow-emerald-500/20'
                                                 : 'bg-rose-500 text-white shadow-rose-500/20'
@@ -132,30 +133,30 @@ export function TestSuiteManager({
                                     </Badge>
                                 )}
                             </div>
-                            <SheetDescription className="text-slate-500 dark:text-slate-500 font-medium text-sm">
+                            <SheetDescription className="text-slate-500 dark:text-slate-500 font-medium text-xs md:text-sm">
                                 Comprehensive breakdown of inputs, expected outcomes, and real-time generation results.
                             </SheetDescription>
                         </SheetHeader>
 
-                        <div className="flex-1 overflow-y-auto p-10 space-y-10 scrollbar-thin-hover">
+                        <div className="flex-1 overflow-y-auto p-5 md:p-10 space-y-6 md:space-y-10 scrollbar-thin-hover">
                             {selectedTestCase && (
                                 <div className="space-y-8">
-                                    <div className="space-y-4">
+                                    <div className="space-y-3 md:space-y-4">
                                         <div className="flex items-center gap-2.5 ml-1">
                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Input Data</label>
                                         </div>
-                                        <div className="p-6 bg-slate-50 dark:bg-white/[0.01] border-2 border-slate-100 dark:border-white/[0.03] rounded-2xl font-mono text-[11px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed shadow-sm">
+                                        <div className="p-4 md:p-6 bg-slate-50 dark:bg-white/[0.01] border-2 border-slate-100 dark:border-white/[0.03] rounded-xl md:rounded-2xl font-mono text-[11px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed shadow-sm">
                                             {selectedTestCase.input_text}
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
+                                    <div className="space-y-3 md:space-y-4">
                                         <div className="flex items-center gap-2.5 ml-1">
                                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Expected Result</label>
                                         </div>
-                                        <div className="p-6 bg-slate-50 dark:bg-white/[0.01] border-2 border-slate-100 dark:border-white/[0.03] rounded-2xl font-mono text-[11px] text-slate-700 dark:text-slate-400 whitespace-pre-wrap leading-relaxed shadow-sm">
+                                        <div className="p-4 md:p-6 bg-slate-50 dark:bg-white/[0.01] border-2 border-slate-100 dark:border-white/[0.03] rounded-xl md:rounded-2xl font-mono text-[11px] text-slate-700 dark:text-slate-400 whitespace-pre-wrap leading-relaxed shadow-sm">
                                             {selectedTestCase.expected_output || 'No expectation defined for this case.'}
                                         </div>
                                     </div>

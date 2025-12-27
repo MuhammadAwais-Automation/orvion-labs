@@ -9,10 +9,10 @@ import {
     Scale,
     Settings2,
     ArrowLeft,
-    LogOut,
     User,
     BarChart3,
-    GitCompare
+    GitCompare,
+    MoreHorizontal
 } from 'lucide-react'
 import {
     Tooltip,
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { User as SupabaseUser } from '@supabase/supabase-js'
+import { useIsMobile } from '@/hooks/use-media-query'
 
 interface ProjectSidebarProps {
     projectId: string
@@ -30,6 +31,7 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ projectId, user }: ProjectSidebarProps) {
     const pathname = usePathname()
+    const isMobile = useIsMobile()
 
     const navItems = [
         {
@@ -71,9 +73,80 @@ export function ProjectSidebar({ projectId, user }: ProjectSidebarProps) {
         return pathname.startsWith(href)
     }
 
+    // Mobile Bottom Navigation
+    if (isMobile) {
+        // Show only first 4 items + more menu
+        const mobileNavItems = navItems.slice(0, 4)
+
+        return (
+            <>
+                {/* Mobile Top Header */}
+                <div className="fixed top-0 left-0 right-0 h-14 bg-[#050505]/95 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 z-50">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span className="text-sm font-medium">Back</span>
+                    </Link>
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                        {user?.email?.[0].toUpperCase() || <User className="w-3.5 h-3.5" />}
+                    </div>
+                </div>
+
+                {/* Mobile Bottom Navigation Bar */}
+                <nav className="fixed bottom-0 left-0 right-0 h-16 bg-[#050505]/95 backdrop-blur-xl border-t border-white/10 flex items-center justify-around px-2 z-50 pb-safe">
+                    {mobileNavItems.map((item) => {
+                        const active = isActive(item.href, item.exact)
+                        const Icon = item.icon
+
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={cn(
+                                    "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors",
+                                    active
+                                        ? "text-cyan-400"
+                                        : "text-slate-500"
+                                )}
+                            >
+                                <div className="relative">
+                                    <Icon className="w-5 h-5" />
+                                    {active && (
+                                        <motion.div
+                                            layoutId="mobile-active-dot"
+                                            className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full"
+                                        />
+                                    )}
+                                </div>
+                                <span className="text-[10px] font-medium">{item.name.split(' ')[0]}</span>
+                            </Link>
+                        )
+                    })}
+
+                    {/* More Menu for Settings & Other Items */}
+                    <Link
+                        href={`/projects/${projectId}/settings`}
+                        className={cn(
+                            "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors",
+                            isActive(`/projects/${projectId}/settings`, false)
+                                ? "text-cyan-400"
+                                : "text-slate-500"
+                        )}
+                    >
+                        <Settings2 className="w-5 h-5" />
+                        <span className="text-[10px] font-medium">Settings</span>
+                    </Link>
+                </nav>
+            </>
+        )
+    }
+
+    // Desktop Sidebar (Original)
     return (
         <TooltipProvider delayDuration={0}>
-            <aside className="h-full w-16 border-r border-white/10 bg-[#050505] flex flex-col items-center py-4 z-40">
+            <aside className="h-full w-16 border-r border-white/10 bg-[#050505] hidden md:flex flex-col items-center py-4 z-40">
                 {/* Top: Back to Dashboard */}
                 <div className="mb-8">
                     <Tooltip>
