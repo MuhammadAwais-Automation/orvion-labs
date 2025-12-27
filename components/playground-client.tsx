@@ -8,12 +8,21 @@ import { Badge } from '@/components/ui/badge'
 import {
     Send, Bot, User, Loader2,
     MessageSquare, Code2,
-    Trash2, Sparkles, Settings2
+    Trash2, Sparkles, Settings2, Clock, Braces
 } from 'lucide-react'
 import { ConfigurationPanel } from '@/components/playground/configuration-panel'
+import { SyntaxHighlightedEditor } from '@/components/playground/syntax-highlighted-editor'
+import { VersionHistory } from '@/components/playground/version-history'
 import { cn } from '@/lib/utils'
 import { ModelConfig } from '@/types/database'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet'
 import type { ImperativePanelHandle } from 'react-resizable-panels'
 import { usePlayground } from '@/hooks/use-playground'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -36,6 +45,7 @@ export function PlaygroundClient({
     const configPanelRef = useRef<ImperativePanelHandle>(null)
     const [isConfigCollapsed, setIsConfigCollapsed] = useState(false)
     const [mobileActiveTab, setMobileActiveTab] = useState<'prompt' | 'chat' | 'config'>('chat')
+    const [showHistoryPanel, setShowHistoryPanel] = useState(false)
     const isMobile = useIsMobile()
 
     // Use the extracted hook for all state and handlers
@@ -117,23 +127,82 @@ export function PlaygroundClient({
                 <div className="flex-1 overflow-hidden">
                     {/* Prompt Tab */}
                     {mobileActiveTab === 'prompt' && (
-                        <div className="h-full flex flex-col">
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-white/[0.06]">
-                                <Badge variant="outline" className="text-[10px] border-cyan-500/30 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10">
-                                    v{currentVersion}
-                                </Badge>
+                        <div className="h-full flex flex-col overflow-hidden">
+                            {/* Header */}
+                            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-white/[0.06]">
+                                {/* Version History Sheet Trigger */}
+                                <Sheet open={showHistoryPanel} onOpenChange={setShowHistoryPanel}>
+                                    <SheetTrigger asChild>
+                                        <button className="flex items-center gap-1.5 text-[10px] border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 font-medium px-2 py-1 rounded-md transition-colors">
+                                            <Clock className="w-3 h-3" />
+                                            v{currentVersion}
+                                        </button>
+                                    </SheetTrigger>
+                                    <SheetContent side="right" className="w-[300px] sm:w-[350px] p-0 bg-white dark:bg-[#0c0c0e]">
+                                        <SheetHeader className="p-4 border-b border-slate-200 dark:border-white/[0.06]">
+                                            <SheetTitle className="text-sm font-bold text-slate-700 dark:text-slate-300">Version History</SheetTitle>
+                                        </SheetHeader>
+                                        <div className="p-4 overflow-y-auto h-[calc(100vh-60px)]">
+                                            <VersionHistory
+                                                projectId={projectId}
+                                                onVersionRestored={() => {
+                                                    router.refresh()
+                                                    setShowHistoryPanel(false)
+                                                }}
+                                            />
+                                        </div>
+                                    </SheetContent>
+                                </Sheet>
                                 <span className="text-[10px] text-slate-500 font-mono">
                                     {systemPrompt.length} chars
                                 </span>
                             </div>
-                            <Textarea
-                                value={systemPrompt}
-                                onChange={(e) => setSystemPrompt(e.target.value)}
-                                placeholder="Define your AI assistant's behavior here..."
-                                className="flex-1 w-full px-4 py-3 resize-none bg-transparent border-0 text-slate-800 dark:text-slate-300 placeholder:text-slate-400 focus:ring-0 focus-visible:ring-0 text-sm leading-relaxed"
-                                style={{ fontFamily: 'var(--font-mono)' }}
-                                spellCheck={false}
-                            />
+                            {/* Resizable Content Area */}
+                            <ResizablePanelGroup direction="vertical" className="flex-1">
+                                {/* Editor Panel */}
+                                <ResizablePanel defaultSize={Object.keys(variables).length > 0 ? 60 : 100} minSize={30}>
+                                    <div className="h-full">
+                                        <SyntaxHighlightedEditor
+                                            value={systemPrompt}
+                                            onChange={setSystemPrompt}
+                                            placeholder="Define your AI assistant's behavior here..."
+                                            className="h-full"
+                                        />
+                                    </div>
+                                </ResizablePanel>
+
+                                {/* Variables Panel - Only show if variables detected */}
+                                {Object.keys(variables).length > 0 && (
+                                    <>
+                                        <ResizableHandle className="h-2 bg-slate-100 dark:bg-white/[0.03] hover:bg-purple-500/20 transition-colors" />
+                                        <ResizablePanel defaultSize={40} minSize={20}>
+                                            <div className="h-full overflow-y-auto bg-slate-50 dark:bg-[#0a0a0b] p-3">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Braces className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Variables</span>
+                                                    <span className="text-[9px] text-slate-400">({Object.keys(variables).length})</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {Object.entries(variables).map(([key, value]) => (
+                                                        <div key={key} className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">
+                                                                {`{{${key}}}`}
+                                                            </span>
+                                                            <input
+                                                                type="text"
+                                                                value={value}
+                                                                onChange={(e) => setVariables({ ...variables, [key]: e.target.value })}
+                                                                placeholder={`Enter ${key}...`}
+                                                                className="flex-1 h-7 px-2 text-[11px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </ResizablePanel>
+                                    </>
+                                )}
+                            </ResizablePanelGroup>
                         </div>
                     )}
 
@@ -225,18 +294,14 @@ export function PlaygroundClient({
                     {mobileActiveTab === 'config' && (
                         <div className="h-full overflow-y-auto">
                             <ConfigurationPanel
-                                projectId={projectId}
                                 config={config}
                                 onConfigChange={setConfig}
-                                variables={variables}
-                                onVariablesChange={setVariables}
                                 isSaving={isSaving}
                                 isSavingNew={isSavingNew}
                                 hasUnsavedChanges={hasUnsavedChanges}
                                 onSave={handleSave}
                                 onSaveAsNew={handleSaveAsNew}
                                 onReset={handleReset}
-                                onVersionRestored={() => router.refresh()}
                                 isCollapsed={false}
                                 onToggleCollapse={() => { }}
                             />
@@ -265,29 +330,81 @@ export function PlaygroundClient({
                                     <span className="text-sm font-medium text-slate-800 dark:text-slate-200">System Prompt</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-[10px] border-cyan-500/30 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 font-medium">
-                                        v{currentVersion}
-                                    </Badge>
+                                    {/* Version History Sheet */}
+                                    <Sheet open={showHistoryPanel} onOpenChange={setShowHistoryPanel}>
+                                        <SheetTrigger asChild>
+                                            <button className="flex items-center gap-1.5 text-[10px] border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 font-medium px-2 py-1 rounded-md transition-colors">
+                                                <Clock className="w-3 h-3" />
+                                                v{currentVersion}
+                                            </button>
+                                        </SheetTrigger>
+                                        <SheetContent side="right" className="w-[350px] p-0 bg-white dark:bg-[#0c0c0e]">
+                                            <SheetHeader className="p-4 border-b border-slate-200 dark:border-white/[0.06]">
+                                                <SheetTitle className="text-sm font-bold text-slate-700 dark:text-slate-300">Version History</SheetTitle>
+                                            </SheetHeader>
+                                            <div className="p-4 overflow-y-auto h-[calc(100vh-60px)]">
+                                                <VersionHistory
+                                                    projectId={projectId}
+                                                    onVersionRestored={() => {
+                                                        router.refresh()
+                                                        setShowHistoryPanel(false)
+                                                    }}
+                                                />
+                                            </div>
+                                        </SheetContent>
+                                    </Sheet>
                                     <span className="text-[10px] text-slate-500 dark:text-slate-600 font-mono bg-slate-100 dark:bg-white/[0.03] px-2 py-1 rounded">
                                         {systemPrompt.length} chars
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Editor Area */}
-                            <div className="flex-1 relative group bg-white dark:bg-[#08080a]">
-                                <Textarea
-                                    value={systemPrompt}
-                                    onChange={(e) => setSystemPrompt(e.target.value)}
-                                    placeholder="Define your AI assistant's behavior here..."
-                                    className="w-full h-full px-5 py-4 resize-none bg-transparent border-0 text-slate-800 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:ring-0 focus-visible:ring-0 text-[13px] leading-relaxed"
-                                    style={{
-                                        boxShadow: 'none',
-                                        fontFamily: 'var(--font-mono)'
-                                    }}
-                                    spellCheck={false}
-                                />
-                            </div>
+                            {/* Resizable Content Area */}
+                            <ResizablePanelGroup direction="vertical" className="flex-1">
+                                {/* Editor Panel */}
+                                <ResizablePanel defaultSize={Object.keys(variables).length > 0 ? 60 : 100} minSize={30}>
+                                    <div className="h-full bg-white dark:bg-[#08080a]">
+                                        <SyntaxHighlightedEditor
+                                            value={systemPrompt}
+                                            onChange={setSystemPrompt}
+                                            placeholder="Define your AI assistant's behavior here..."
+                                            className="h-full"
+                                        />
+                                    </div>
+                                </ResizablePanel>
+
+                                {/* Variables Panel - Only show if variables detected */}
+                                {Object.keys(variables).length > 0 && (
+                                    <>
+                                        <ResizableHandle className="h-2 bg-slate-100 dark:bg-white/[0.03] hover:bg-purple-500/20 transition-colors" />
+                                        <ResizablePanel defaultSize={40} minSize={15}>
+                                            <div className="h-full overflow-y-auto bg-slate-50 dark:bg-[#0a0a0b] p-4">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <Braces className="w-4 h-4 text-purple-600 dark:text-purple-500" />
+                                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Variables</span>
+                                                    <span className="text-[10px] text-slate-400">({Object.keys(variables).length} detected)</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {Object.entries(variables).map(([key, value]) => (
+                                                        <div key={key} className="flex items-center gap-3">
+                                                            <span className="text-[11px] font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-1 rounded min-w-[80px]">
+                                                                {`{{${key}}}`}
+                                                            </span>
+                                                            <input
+                                                                type="text"
+                                                                value={value}
+                                                                onChange={(e) => setVariables({ ...variables, [key]: e.target.value })}
+                                                                placeholder={`Enter ${key}...`}
+                                                                className="flex-1 h-8 px-3 text-[12px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </ResizablePanel>
+                                    </>
+                                )}
+                            </ResizablePanelGroup>
                         </div>
                     </ResizablePanel>
 
@@ -416,18 +533,14 @@ export function PlaygroundClient({
                 )}
             >
                 <ConfigurationPanel
-                    projectId={projectId}
                     config={config}
                     onConfigChange={setConfig}
-                    variables={variables}
-                    onVariablesChange={setVariables}
                     isSaving={isSaving}
                     isSavingNew={isSavingNew}
                     hasUnsavedChanges={hasUnsavedChanges}
                     onSave={handleSave}
                     onSaveAsNew={handleSaveAsNew}
                     onReset={handleReset}
-                    onVersionRestored={() => router.refresh()}
                     isCollapsed={isConfigCollapsed}
                     onToggleCollapse={() => setIsConfigCollapsed(!isConfigCollapsed)}
                 />

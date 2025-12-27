@@ -59,6 +59,30 @@ export function usePlayground({
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
 
+    // Auto-detect variables from {{variable_name}} pattern in systemPrompt
+    useEffect(() => {
+        const regex = /\{\{(\w+)\}\}/g
+        const detectedVars: string[] = []
+        let match
+
+        while ((match = regex.exec(systemPrompt)) !== null) {
+            const varName = match[1]
+            if (!detectedVars.includes(varName)) {
+                detectedVars.push(varName)
+            }
+        }
+
+        // Update variables - add new ones, keep existing values
+        setVariables(prev => {
+            const updated: Record<string, string> = {}
+            detectedVars.forEach(varName => {
+                // Keep existing value if exists, otherwise empty string
+                updated[varName] = prev[varName] ?? ''
+            })
+            return updated
+        })
+    }, [systemPrompt])
+
     // Handle chat send
     const handleSend = async () => {
         if (!userInput.trim() || isLoading) return

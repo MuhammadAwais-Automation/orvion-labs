@@ -337,17 +337,12 @@ export default function PlaygroundPage() {
                 )}
             >
                 <ConfigurationPanel
-                    projectId={projectId}
-                    currentVersionId={currentVersionId}
                     config={config}
                     onConfigChange={setConfig}
-                    variables={variables}
-                    onVariablesChange={setVariables}
                     isSaving={isSaving}
                     hasUnsavedChanges={hasUnsavedChanges}
                     onSave={handleSave}
                     onReset={handleReset}
-                    onVersionRestored={handleVersionRestored}
                     isCollapsed={isConfigCollapsed}
                     onToggleCollapse={() => setIsConfigCollapsed(!isConfigCollapsed)}
                 />

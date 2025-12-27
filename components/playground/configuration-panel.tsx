@@ -20,15 +20,9 @@ import {
     RotateCcw,
     Loader2,
     GitBranch,
-    PanelRightClose,
-    PanelRightOpen,
-    Plus,
-    X,
-    Braces,
-    Clock
+    PanelRightClose
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { VersionHistory } from './version-history'
 
 interface ModelConfig {
     model: string
@@ -38,19 +32,14 @@ interface ModelConfig {
 }
 
 interface ConfigurationPanelProps {
-    projectId: string
-    currentVersionId?: string
     config: ModelConfig
     onConfigChange: (newConfig: ModelConfig) => void
-    variables: Record<string, string>
-    onVariablesChange: (variables: Record<string, string>) => void
     isSaving: boolean
     isSavingNew?: boolean
     hasUnsavedChanges: boolean
     onSave: () => void
     onSaveAsNew?: () => void
     onReset: () => void
-    onVersionRestored: () => void
     isCollapsed?: boolean
     onToggleCollapse?: () => void
 }
@@ -62,47 +51,20 @@ const MODELS = [
 ]
 
 export function ConfigurationPanel({
-    projectId,
-    currentVersionId,
     config,
     onConfigChange,
-    variables,
-    onVariablesChange,
     isSaving,
     isSavingNew = false,
     hasUnsavedChanges,
     onSave,
     onSaveAsNew,
     onReset,
-    onVersionRestored,
     isCollapsed = false,
     onToggleCollapse
 }: ConfigurationPanelProps) {
 
     const updateField = (field: keyof ModelConfig, value: any) => {
         onConfigChange({ ...config, [field]: value })
-    }
-
-    const addVariable = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        const newKey = `var${Object.keys(variables).length + 1}`
-        onVariablesChange({ ...variables, [newKey]: '' })
-    }
-
-    const updateVariable = (oldKey: string, newKey: string, value: string) => {
-        const updated = { ...variables }
-        if (oldKey !== newKey) {
-            delete updated[oldKey]
-        }
-        updated[newKey] = value
-        onVariablesChange(updated)
-    }
-
-    const removeVariable = (key: string, e: React.MouseEvent) => {
-        e.stopPropagation()
-        const updated = { ...variables }
-        delete updated[key]
-        onVariablesChange(updated)
     }
 
     const currentModel = MODELS.find(m => m.value === config.model)
@@ -231,60 +193,7 @@ export function ConfigurationPanel({
                             </AccordionContent>
                         </AccordionItem>
 
-                        {/* Variables */}
-                        <AccordionItem value="variables" className="border-slate-200 dark:border-white/[0.04]">
-                            <div className="flex items-center justify-between w-full pr-4 group/var">
-                                <AccordionTrigger className="flex-1 hover:no-underline py-4">
-                                    <div className="flex items-center gap-2">
-                                        <Braces className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500" />
-                                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Variables</span>
-                                    </div>
-                                </AccordionTrigger>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={addVariable}
-                                    className="h-5 px-1.5 text-[9px] text-cyan-600 dark:text-cyan-500 hover:text-cyan-700 dark:hover:text-cyan-400 hover:bg-cyan-500/10 z-10"
-                                >
-                                    <Plus className="w-3 h-3 mr-1" /> Add
-                                </Button>
-                            </div>
-                            <AccordionContent className="pb-4 space-y-2">
-                                {Object.keys(variables).length === 0 ? (
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-600 italic px-1">
-                                        No variables. Use {"{{name}}"} in prompt.
-                                    </p>
-                                ) : (
-                                    Object.entries(variables).map(([key, value]) => (
-                                        <div key={key} className="flex items-center gap-2 group">
-                                            <input
-                                                type="text"
-                                                value={key}
-                                                onChange={(e) => updateVariable(key, e.target.value, value)}
-                                                placeholder="name"
-                                                className="w-1/3 h-8 px-2 text-[11px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 font-mono"
-                                            />
-                                            <span className="text-slate-300 dark:text-slate-700">=</span>
-                                            <input
-                                                type="text"
-                                                value={value}
-                                                onChange={(e) => updateVariable(key, key, e.target.value)}
-                                                placeholder="value"
-                                                className="flex-1 h-8 px-2 text-[11px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
-                                            />
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={(e) => removeVariable(key, e)}
-                                                className="h-6 w-6 p-0 text-slate-400 dark:text-slate-600 hover:text-red-500 transition-colors"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </Button>
-                                        </div>
-                                    ))
-                                )}
-                            </AccordionContent>
-                        </AccordionItem>
+
 
                         {/* Parameters */}
                         <AccordionItem value="parameters" className="border-slate-200 dark:border-white/[0.04]">
@@ -348,24 +257,6 @@ export function ConfigurationPanel({
                                         className="[&_[role=slider]]:bg-emerald-500 [&_[role=slider]]:border-emerald-400"
                                     />
                                 </div>
-                            </AccordionContent>
-                        </AccordionItem>
-
-
-                        {/* History */}
-                        <AccordionItem value="history" className="border-0">
-                            <AccordionTrigger className="hover:no-underline py-4">
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">History</span>
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="pb-4">
-                                <VersionHistory
-                                    projectId={projectId}
-                                    currentVersionId={currentVersionId}
-                                    onVersionRestored={onVersionRestored}
-                                />
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
