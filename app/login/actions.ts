@@ -86,17 +86,17 @@ export async function signup(formData: FormData) {
 
             const { error: profileError } = await supabase
                 .from('profiles')
-                .insert({
+                .upsert({
                     id: data.user.id,
                     email: email,
-                    full_name: defaultName, // Set default name from email
-                })
+                    full_name: defaultName,
+                }, { onConflict: 'id' })
 
             if (profileError) {
-                console.error('[SIGNUP] Profile creation error:', profileError.message)
+                console.error('[SIGNUP] Profile creation/update error:', profileError.message)
                 // Don't fail signup if profile creation fails, but log it
             } else {
-                console.log('[SIGNUP] Profile created successfully')
+                console.log('[SIGNUP] Profile ensured successfully')
             }
         }
 
