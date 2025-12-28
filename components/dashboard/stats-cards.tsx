@@ -1,24 +1,22 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Activity, BarChart, Layers, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react'
+import { Activity, BarChart, Coins, TrendingUp, TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 interface StatsCardsProps {
     totalRuns: number
     avgPassRate: number
-    activeProjects: number
-    recentlyUpdated: number
-    runsTrend?: number // Percentage change
+    credits: number
+    runsTrend: number
 }
 
 export function StatsCards({
     totalRuns,
     avgPassRate,
-    activeProjects,
-    recentlyUpdated,
-    runsTrend = 12
+    credits,
+    runsTrend
 }: StatsCardsProps) {
     const stats = [
         {
@@ -26,45 +24,40 @@ export function StatsCards({
             value: totalRuns.toString(),
             icon: Activity,
             trend: runsTrend,
-            trendText: `${runsTrend > 0 ? '+' : ''}${runsTrend}% from last week`,
+            trendText: runsTrend === 0
+                ? 'No change from last week'
+                : `${runsTrend > 0 ? '+' : ''}${runsTrend}% from last week`,
             color: 'cyan'
         },
         {
             title: 'Avg. Pass Rate',
             value: `${avgPassRate.toFixed(1)}%`,
             icon: BarChart,
-            status: avgPassRate >= 70 ? 'Stable performance' : 'Needs attention',
+            status: avgPassRate >= 70 ? 'Stable performance' : avgPassRate > 0 ? 'Needs attention' : 'No data yet',
             color: 'purple'
         },
         {
-            title: 'Active Projects',
-            value: activeProjects.toString(),
-            icon: Layers,
-            status: `${recentlyUpdated} updated recently`,
-            color: 'blue'
-        },
-        {
-            title: 'System Health',
-            value: '98% Uptime',
-            icon: CheckCircle,
-            status: 'All Systems Operational',
-            color: 'green',
-            pulse: true
+            title: 'Credits Remaining',
+            value: credits.toString(),
+            icon: Coins,
+            status: credits < 10 ? 'Low balance' : credits < 50 ? 'Running low' : 'Sufficient',
+            color: credits < 10 ? 'red' : credits < 50 ? 'amber' : 'green',
+            pulse: credits < 10
         }
     ]
 
     const colorMap: Record<string, string> = {
         cyan: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
         purple: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-        blue: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-        green: 'text-green-400 bg-green-500/10 border-green-500/20'
+        amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        green: 'text-green-400 bg-green-500/10 border-green-500/20',
+        red: 'text-red-400 bg-red-500/10 border-red-500/20'
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {stats.map((stat, index) => {
                 const Icon = stat.icon
-                const colorClass = colorMap[stat.color]
 
                 return (
                     <motion.div
@@ -82,8 +75,9 @@ export function StatsCards({
                                     "p-2 rounded-xl transition-all duration-300",
                                     stat.color === 'cyan' ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400" :
                                         stat.color === 'purple' ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" :
-                                            stat.color === 'blue' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
-                                                "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                            stat.color === 'amber' ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+                                                stat.color === 'red' ? "bg-red-500/10 text-red-600 dark:text-red-400" :
+                                                    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 )}>
                                     <Icon className="w-4 h-4" />
                                 </div>
@@ -107,9 +101,16 @@ export function StatsCards({
                                         <span>{stat.trendText}</span>
                                     </div>
                                 )}
-                                {stat.status && !stat.trend && (
+                                {stat.status && stat.trend === undefined && (
                                     <div className="text-xs font-bold text-slate-400 dark:text-zinc-500 flex items-center gap-2">
-                                        <div className={cn("w-1.5 h-1.5 rounded-full", stat.color === 'green' ? "bg-emerald-500 animate-pulse" : "bg-slate-300 dark:bg-zinc-700")} />
+                                        <div className={cn(
+                                            "w-1.5 h-1.5 rounded-full",
+                                            stat.color === 'green' ? "bg-emerald-500" :
+                                                stat.color === 'red' ? "bg-red-500 animate-pulse" :
+                                                    stat.color === 'amber' ? "bg-amber-500" :
+                                                        "bg-slate-300 dark:bg-zinc-700",
+                                            stat.pulse && "animate-pulse"
+                                        )} />
                                         {stat.status}
                                     </div>
                                 )}

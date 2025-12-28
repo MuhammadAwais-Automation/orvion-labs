@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { StatsCards } from '@/components/dashboard/stats-cards'
-import { ModelPerformanceChart } from '@/components/dashboard/model-performance-chart'
+import { RecentActivity } from '@/components/dashboard/recent-activity'
 import { LandingPage } from '@/components/landing-page'
 
 export const metadata = {
@@ -21,26 +21,34 @@ export default async function Page() {
         return <LandingPage />
     }
 
-    // Fetch user profile for name
+    // Fetch user profile for name AND credits
     const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, credits')
         .eq('id', user.id)
         .single()
 
-    // Fetch user's projects count for stats
-    const { count: activeProjectsCount } = await supabase
+
+    // First fetch user's project IDs
+    const { data: userProjects } = await supabase
         .from('projects')
-        .select('*', { count: 'exact', head: true })
+        .select('id, name')
         .eq('user_id', user.id)
 
-    // Fetch recent test runs for analytics
-    const { data: recentRuns } = await supabase
-        .from('test_runs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
+    const projectIds = userProjects?.map(p => p.id) || []
+
+    // Fetch recent test runs for user's projects
+    let recentRuns: any[] = []
+    if (projectIds.length > 0) {
+        const { data } = await supabase
+            .from('test_runs')
+            .select('*, projects(name)')
+            .in('project_id', projectIds)
+            .order('created_at', { ascending: false })
+            .limit(50)
+        recentRuns = data || []
+    }
+
 
     // Calculate KPIs
     const totalRuns = recentRuns?.length || 0
@@ -53,22 +61,41 @@ export default async function Page() {
         }, 0) / completedRuns.length)
         : 0
 
-    // Count projects updated recently (last 7 days)
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    // Calculate REAL weekly trend (not hardcoded 12%)
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+    const twoWeeksAgo = new Date()
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
 
-    const { count: recentlyUpdated } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gt('updated_at', sevenDaysAgo.toISOString())
+    const thisWeekRuns = recentRuns?.filter(r =>
+        new Date(r.created_at) > oneWeekAgo
+    ).length || 0
+
+    const lastWeekRuns = recentRuns?.filter(r =>
+        new Date(r.created_at) > twoWeeksAgo &&
+        new Date(r.created_at) <= oneWeekAgo
+    ).length || 0
+
+    const runsTrend = lastWeekRuns > 0
+        ? Math.round(((thisWeekRuns - lastWeekRuns) / lastWeekRuns) * 100)
+        : (thisWeekRuns > 0 ? 100 : 0)
+
+    // Get recent activity (runs with project names - scrollable so show more)
+    const recentActivity = (recentRuns || []).slice(0, 20).map(run => ({
+        id: run.id,
+        projectName: (run.projects as any)?.name || 'Unknown Project',
+        status: run.status as 'completed' | 'failed' | 'processing',
+        passedCases: run.passed_cases || 0,
+        totalCases: run.total_cases || 0,
+        createdAt: run.created_at
+    }))
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pb-12">
             {/* Header Section */}
             <DashboardHeader userName={profile?.full_name} userEmail={user.email} />
 
-            {/* Main Content Sections */}
+            {/* KPI Stats */}
             <section className="space-y-6">
                 <div className="flex items-center justify-between px-1">
                     <h2 className="text-sm font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Key Performance Indicators</h2>
@@ -76,20 +103,17 @@ export default async function Page() {
                 <StatsCards
                     totalRuns={totalRuns}
                     avgPassRate={avgPassRate}
-                    activeProjects={activeProjectsCount || 0}
-                    recentlyUpdated={recentlyUpdated || 0}
-                    runsTrend={12}
+                    credits={profile?.credits || 0}
+                    runsTrend={runsTrend}
                 />
             </section>
 
-            {/* Analytics Section */}
+            {/* Recent Activity */}
             <section className="space-y-6">
                 <div className="flex items-center justify-between px-1">
-                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Stability Matrix</h2>
+                    <h2 className="text-sm font-black uppercase tracking-widest text-gray-500 dark:text-zinc-500">Recent Activity</h2>
                 </div>
-                <div className="w-full h-full">
-                    <ModelPerformanceChart />
-                </div>
+                <RecentActivity runs={recentActivity} />
             </section>
         </div>
     )
