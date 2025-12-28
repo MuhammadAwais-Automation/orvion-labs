@@ -165,13 +165,14 @@ hooks/
 - **Subscription Cleanup**: `activeChannelsRef` tracks all Realtime channels, cleaned on unmount
 - **Guard Against Duplicates**: `isRunning` check prevents multiple simultaneous runs
 
-### 5.4 Version Actions (version-actions.ts) (NEW/EXPANDED)
+### 5.4 Version Actions (version-actions.ts)
 | Function | Purpose |
 | :--- | :--- |
 | `savePromptVersion()` | Create new version, auto-increment version_number, update `current_version_id` |
 | `updateActiveVersion()` | Modify current version's system_prompt and model_config in-place |
 | `getVersionHistory()` | Fetch all versions for a project, ordered by version_number DESC |
 | `switchActiveVersion()` | Change `projects.current_version_id` to a different version |
+| `deletePromptVersion()` | **NEW** - Delete a version with safety checks (cannot delete active or last remaining) |
 | `updateEvaluationConfig()` | Update evaluation rules (hallucination_threshold) on a version |
 | `getVersionComparison()` | Compare two versions: prompts, configs, and test run pass rates |
 
@@ -185,7 +186,7 @@ components/
     ├── playground-desktop.tsx      # Desktop 3-column resizable layout (~290 lines)
     ├── configuration-panel.tsx     # Model settings (temperature, max_tokens, model selector)
     ├── syntax-highlighted-editor.tsx  # System prompt editor with line numbers
-    └── version-history.tsx         # Version list with restore functionality
+    └── version-history.tsx         # Version list with restore + delete functionality
 ```
 
 **Architecture Diagram**:
@@ -259,6 +260,13 @@ getProjectAnalytics(projectId, { daysBack: 30 })
 | `components/version-diff-viewer.tsx` | Side-by-side prompt comparison with diff highlighting |
 | `components/version-selector.tsx` | Dropdown for selecting versions to compare |
 
+### 5.8 UI Components (NEW)
+| Path | Responsibility |
+| :--- | :--- |
+| `components/ui/alert-dialog.tsx` | **NEW** - Radix-based confirmation dialog for destructive actions |
+| `components/ui/dialog.tsx` | General-purpose modal dialog |
+| `components/ui/sheet.tsx` | Slide-out panel (used for version history, mobile nav) |
+
 ---
 
 ## 🔒 6. Security & Environment
@@ -291,7 +299,7 @@ The following variables are critical for the system:
 ### Current Work-in-Progress (WIP)
 **Session Date: 2025-12-28**
 
-We have completed a major **Lego Blocks Architecture Refactoring** of the Playground system and fixed critical Version History synchronization issues:
+We have completed a major **Lego Blocks Architecture Refactoring** of the Playground system, fixed Version History issues, and added Version Delete functionality:
 
 #### 7.1 Critical Fixes Completed (Previous Session)
 | Issue | Root Cause | Fix Applied |
@@ -301,15 +309,23 @@ We have completed a major **Lego Blocks Architecture Refactoring** of the Playgr
 | Results Not Saving | DB CHECK constraint rejected `'failed'` status | Changed to `'error'` to comply with constraint |
 | UI Not Updating | Tables not in Realtime publication | Added `test_runs` and `test_results` to `supabase_realtime` |
 
-#### 7.2 Version History Fix (NEW - 2025-12-28)
-| Issue | Root Cause | Fix Applied |
-|-------|------------|-------------|
-| Prompt not updating after version restore | `usePlayground` state initialized once, not re-synced | Added `reloadFromServer()` function to fetch and update state from DB |
-| Badge showing old version number | Only `router.refresh()` was called, hook state stale | Now calls `await reloadFromServer()` before `router.refresh()` |
+#### 7.2 Version History Features (2025-12-28)
+| Feature | Implementation |
+|---------|---------------|
+| Version Restore Sync | `reloadFromServer()` fetches latest active version from DB after restore |
+| Version Delete | `deletePromptVersion()` with safety checks + AlertDialog confirmation |
+
+**Safety Constraints for Delete**:
+- ❌ Cannot delete the active version (must restore different version first)
+- ❌ Cannot delete the last remaining version (project needs at least one)
+- ✅ Confirmation dialog before permanent deletion
 
 **Files Modified**:
 - `hooks/use-playground.ts` - Added `reloadFromServer()` method
 - `components/playground-client.tsx` - Updated `onVersionRestored` callbacks
+- `app/actions/version-actions.ts` - Added `deletePromptVersion()` action
+- `components/playground/version-history.tsx` - Added delete UI with AlertDialog
+- `components/ui/alert-dialog.tsx` - **NEW** - Radix confirmation component
 
 #### 7.3 Playground Lego Blocks Refactoring (NEW - 2025-12-28)
 | Metric | Before | After |
@@ -341,7 +357,7 @@ We have completed a major **Lego Blocks Architecture Refactoring** of the Playgr
 | File | Lines | Priority | Recommended Action |
 |------|-------|----------|-------------------|
 | `analytics-client.tsx` | 421 | 🟠 Medium | Extract charts into separate components |
-| `version-actions.ts` | 219 | 🟡 Low | Group by domain (version CRUD, comparison) |
+| `version-actions.ts` | 268 | 🟡 Low | Now includes deletePromptVersion with safety checks |
 | `test-runner-actions.ts` | 213 | 🟡 Low | Already well-structured |
 
 ### Immediate Technical Priorities (The Next 3)

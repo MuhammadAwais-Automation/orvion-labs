@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import { History as HistoryIcon, RotateCcw, Check, Loader2, GitCommit } from 'lucide-react'
+import { History as HistoryIcon, RotateCcw, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
-import { getVersionHistory, switchActiveVersion } from '@/app/actions'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { getVersionHistory, switchActiveVersion, deletePromptVersion } from '@/app/actions'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +40,7 @@ export function VersionHistory({ projectId, currentVersionId, onVersionRestored 
     const [versions, setVersions] = useState<Version[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [isRestoring, setIsRestoring] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
 
     useEffect(() => {
         loadHistory()
@@ -68,6 +79,24 @@ export function VersionHistory({ projectId, currentVersionId, onVersionRestored 
         }
     }
 
+    async function handleDelete(versionId: string) {
+        setDeletingId(versionId)
+        try {
+            const result = await deletePromptVersion(projectId, versionId)
+            if (result.success) {
+                toast.success('Version deleted successfully')
+                // Remove from local state
+                setVersions(prev => prev.filter(v => v.id !== versionId))
+            } else {
+                toast.error(result.error || 'Failed to delete version')
+            }
+        } catch (error) {
+            toast.error('Failed to delete version')
+        } finally {
+            setDeletingId(null)
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -90,6 +119,9 @@ export function VersionHistory({ projectId, currentVersionId, onVersionRestored 
             <div className="p-4 space-y-3">
                 {versions.map((version) => {
                     const isCurrent = version.id === currentVersionId
+                    const isDeleting = deletingId === version.id
+                    const isOnlyVersion = versions.length === 1
+
                     return (
                         <div
                             key={version.id}
@@ -126,17 +158,52 @@ export function VersionHistory({ projectId, currentVersionId, onVersionRestored 
                             )}
 
                             {!isCurrent && (
-                                <div className="pl-8 pt-1 opacity-0 group-hover:opacity-100 transition-opacity flex justify-end">
+                                <div className="pl-8 pt-1 opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-2">
                                     <Button
                                         size="sm"
                                         variant="secondary"
                                         onClick={() => handleRestore(version.id)}
-                                        disabled={isRestoring}
+                                        disabled={isRestoring || isDeleting}
                                         className="h-7 text-xs bg-slate-100 dark:bg-white/10 hover:bg-cyan-100 dark:hover:bg-cyan-500/20 text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400"
                                     >
                                         {isRestoring ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RotateCcw className="w-3 h-3 mr-1" />}
                                         Restore
                                     </Button>
+
+                                    {/* Delete Button with Confirmation */}
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                disabled={isDeleting || isOnlyVersion}
+                                                className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                            >
+                                                {isDeleting ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="w-3 h-3" />
+                                                )}
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="max-w-md">
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete Version {version.version_number}?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. The version's prompt and configuration will be permanently deleted.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => handleDelete(version.id)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white"
+                                                >
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             )}
                         </div>

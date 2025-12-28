@@ -12,6 +12,7 @@ export {
     updateActiveVersion,
     getVersionHistory,
     switchActiveVersion,
+    deletePromptVersion,
     updateEvaluationConfig,
     getVersionComparison
 } from './version-actions';

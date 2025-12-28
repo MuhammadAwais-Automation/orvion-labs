@@ -115,8 +115,57 @@ export async function switchActiveVersion(projectId: string, versionId: string) 
         return { success: false, error: error.message };
     }
 
-    revalidatePath(`/project/${projectId}`);
-    revalidatePath(`/project/${projectId}/evaluations`);
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}/playground`);
+    return { success: true };
+}
+
+// --- DELETE VERSION ---
+
+export async function deletePromptVersion(projectId: string, versionId: string) {
+    const supabase = await createClient();
+
+    // Safety Check 1: Cannot delete the active version
+    const { data: project } = await supabase
+        .from('projects')
+        .select('current_version_id')
+        .eq('id', projectId)
+        .single();
+
+    if (project?.current_version_id === versionId) {
+        return {
+            success: false,
+            error: 'Cannot delete the active version. Restore a different version first.'
+        };
+    }
+
+    // Safety Check 2: Must keep at least one version
+    const { count } = await supabase
+        .from('prompt_versions')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+
+    if (count && count <= 1) {
+        return {
+            success: false,
+            error: 'Cannot delete the last remaining version.'
+        };
+    }
+
+    // Delete the version
+    const { error } = await supabase
+        .from('prompt_versions')
+        .delete()
+        .eq('id', versionId)
+        .eq('project_id', projectId);
+
+    if (error) {
+        console.error('Error deleting version:', error);
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}/playground`);
     return { success: true };
 }
 
