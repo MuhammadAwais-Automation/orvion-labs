@@ -3,6 +3,8 @@
 ## 🚀 Current Mission
 We have successfully implemented a **Durable Background Runner** system using Inngest and Supabase, enabling reliable, asynchronous execution of large AI test suites with atomic credit management and real-time result streaming.
 
+**Recent Achievement (2025-12-28):** Completed a comprehensive **Lego Blocks Architecture Refactoring** of the Playground system, decomposing a 565-line monolithic component into focused, testable modules.
+
 ---
 
 ## 🛠 System Architecture
@@ -21,6 +23,19 @@ The system employs a modern, event-driven architecture designed for scalability 
 The schema is optimized for tracking temporal performance and cost:
 
 - **`profiles`**: Stores user-specific settings and `credits` (Integer).
+- **`projects`**:
+    - `id` (UUID, Primary Key)
+    - `current_version_id` ⮕ `prompt_versions.id` (Foreign Key to active version)
+    - `name`, `description`, `user_id`
+- **`prompt_versions`**:
+    - `id` (UUID, Primary Key)
+    - `project_id` ⮕ `projects.id` (Foreign Key)
+    - `version_number` (Integer, auto-incremented per project)
+    - `system_prompt` (Text)
+    - `model_config` (JSONB: `{ model, temperature, max_tokens, top_p }`)
+    - `evaluation_config` (JSONB: `{ hallucination_threshold }`)
+    - `label` (Optional user-defined label)
+    - `is_active` (Boolean, legacy - use `projects.current_version_id` instead)
 - **`test_runs`**:
     - `id` (UUID, Primary Key)
     - `status` (`pending`, `processing`, `completed`, `failed`)
@@ -82,6 +97,27 @@ Implemented in `ai-actions.ts`:
 4.  **Rubric Application**: Uses `utils/judge-prompt.ts` to apply abstract rules (Intent Match, Polarity Check, Factual Integrity) with strict null-guards.
 5.  **Verdict**: Returns a JSON `{ pass: boolean, reason: string }`.
 
+### 4.3 Version Restore Flow (NEW)
+Implemented via `usePlayground.reloadFromServer()`:
+```mermaid
+sequenceDiagram
+    participant UI as VersionHistory Component
+    participant Hook as usePlayground Hook
+    participant SA as switchActiveVersion Action
+    participant DB as Supabase
+
+    UI->>SA: switchActiveVersion(projectId, versionId)
+    SA->>DB: UPDATE projects SET current_version_id = versionId
+    SA-->>UI: { success: true }
+    UI->>Hook: reloadFromServer()
+    Hook->>DB: SELECT current_version_id FROM projects
+    Hook->>DB: SELECT system_prompt, model_config FROM prompt_versions
+    Hook->>Hook: setSystemPrompt(newPrompt)
+    Hook->>Hook: setOriginalPrompt(newPrompt)
+    Hook->>Hook: setConfig(newConfig)
+    UI->>UI: router.refresh() - Sync server components
+```
+
 ---
 
 ## 📂 5. File Registry (Lego Inventory)
@@ -97,10 +133,25 @@ Implemented in `ai-actions.ts`:
 | `utils/model-pricing.ts` | **The Accountant**. Maps tokens to credit costs for every OpenAI model. |
 | `utils/judge-prompt.ts` | **The Judge's Brain**. Null-safe logic generator for semantic evaluations. |
 
-### 5.2 Modular Hooks Architecture (NEW - Lego Blocks Pattern)
+### 5.2 Server Actions Architecture
+```
+app/actions/
+├── index.ts                    # Barrel export (re-exports all actions)
+├── ai-actions.ts               # gradeResult, simulateChat, generateExpectedOutput
+├── analytics-actions.ts        # getProjectAnalytics, getAuditResults, updateProfile
+├── project-actions.ts          # createProject, updateProject, deleteProject
+├── test-case-actions.ts        # CRUD for test cases
+├── test-runner-actions.ts      # createTestRun, runBatchTests, getTestResults
+└── version-actions.ts          # Version control (see 5.4)
+```
+
+### 5.3 Modular Hooks Architecture (Lego Blocks Pattern)
 ```
 hooks/
-├── use-test-suite.ts           # Composition Root (81 lines) - Facade for all hooks
+├── use-playground.ts           # Playground state orchestrator (231 lines)
+├── use-auth-form.ts            # Authentication form logic
+├── use-media-query.ts          # Responsive breakpoint detection (useIsMobile)
+├── use-test-suite.ts           # Composition Root (facade for test hooks)
 └── test-suite/
     ├── index.ts                # Barrel export
     ├── types.ts                # Shared interfaces (TestCase, TestResult)
@@ -114,11 +165,99 @@ hooks/
 - **Subscription Cleanup**: `activeChannelsRef` tracks all Realtime channels, cleaned on unmount
 - **Guard Against Duplicates**: `isRunning` check prevents multiple simultaneous runs
 
-### 5.3 Presentational Components
+### 5.4 Version Actions (version-actions.ts) (NEW/EXPANDED)
+| Function | Purpose |
+| :--- | :--- |
+| `savePromptVersion()` | Create new version, auto-increment version_number, update `current_version_id` |
+| `updateActiveVersion()` | Modify current version's system_prompt and model_config in-place |
+| `getVersionHistory()` | Fetch all versions for a project, ordered by version_number DESC |
+| `switchActiveVersion()` | Change `projects.current_version_id` to a different version |
+| `updateEvaluationConfig()` | Update evaluation rules (hallucination_threshold) on a version |
+| `getVersionComparison()` | Compare two versions: prompts, configs, and test run pass rates |
+
+### 5.5 Playground Lego Blocks Architecture (NEW - 2025-12-28)
+```
+components/
+├── playground-client.tsx           # Thin orchestrator (90 lines) - device detection + delegation
+└── playground/
+    ├── types.ts                    # Shared TypeScript interfaces (PlaygroundLayoutProps, etc.)
+    ├── playground-mobile.tsx       # Mobile tab-based layout (~270 lines)
+    ├── playground-desktop.tsx      # Desktop 3-column resizable layout (~290 lines)
+    ├── configuration-panel.tsx     # Model settings (temperature, max_tokens, model selector)
+    ├── syntax-highlighted-editor.tsx  # System prompt editor with line numbers
+    └── version-history.tsx         # Version list with restore functionality
+```
+
+**Architecture Diagram**:
+```
+                    ┌─────────────────────────┐
+                    │  Server Component       │
+                    │  playground/page.tsx    │
+                    │  (61 lines - thin)      │
+                    └───────────┬─────────────┘
+                                │ props (SSR data)
+                                ▼
+                    ┌─────────────────────────┐
+                    │  PlaygroundClient       │
+                    │  playground-client.tsx  │
+                    │  (90 lines)             │
+                    └───────────┬─────────────┘
+                                │ useIsMobile()
+                    ┌───────────┴───────────┐
+                    ▼                       ▼
+        ┌───────────────────┐   ┌───────────────────┐
+        │ PlaygroundMobile  │   │ PlaygroundDesktop │
+        │ (~270 lines)      │   │ (~290 lines)      │
+        └───────────────────┘   └───────────────────┘
+                    │                       │
+                    └───────────┬───────────┘
+                                ▼
+                    ┌─────────────────────────┐
+                    │  usePlayground Hook     │
+                    │  (231 lines)            │
+                    └─────────────────────────┘
+                                │
+                                ▼
+                    ┌─────────────────────────┐
+                    │  Server Actions         │
+                    │  (version-actions.ts)   │
+                    └─────────────────────────┘
+```
+
+**Key usePlayground Hook Functions**:
+| Function | Purpose |
+| :--- | :--- |
+| `handleSend()` | Send chat message, replace `{{variables}}`, invoke `simulateChat` |
+| `handleSave()` | Persist current prompt/config to active version |
+| `handleSaveAsNew()` | Create new version with current state |
+| `handleReset()` | Revert to `originalPrompt` |
+| `handleClearChat()` | Clear conversation history |
+| `reloadFromServer()` | **NEW** - Fetch latest active version from DB, sync state (used after version restore) |
+
+### 5.6 Analytics Dashboard (Implemented)
+| File | Purpose |
+| :--- | :--- |
+| `app/actions/analytics-actions.ts` | `getProjectAnalytics()` - aggregates by day: tests, costs, latency |
+| `components/analytics-client.tsx` | Charts (Recharts): Pass Rate Area, Token Usage Bar, Cost Line |
+| `app/projects/[id]/analytics/page.tsx` | Server wrapper that passes projectId to client |
+
+**Analytics Data Flow**:
+```
+getProjectAnalytics(projectId, { daysBack: 30 })
+    │
+    ├─► Fetch test_runs (date range filter)
+    ├─► Fetch test_results for those runs
+    ├─► Aggregate: dailyTests, dailyCosts, dailyLatency
+    └─► Return: usageTrend[], costAnalysis[], latencyTrend[], slowestTests[], summary{}
+```
+
+### 5.7 Presentational Components
 | Path | Responsibility |
 | :--- | :--- |
 | `components/test-runner-view.tsx` | **Dumb Component**. Pure UI, receives all state via props. |
 | `components/test-runner.tsx` | **DEPRECATED**. Has its own state, kept for backward compatibility. |
+| `components/version-diff-viewer.tsx` | Side-by-side prompt comparison with diff highlighting |
+| `components/version-selector.tsx` | Dropdown for selecting versions to compare |
 
 ---
 
@@ -150,11 +289,11 @@ The following variables are critical for the system:
 ## 📍 7. Handoff: State of Play & Next Steps
 
 ### Current Work-in-Progress (WIP)
-**Session Date: 2025-12-25**
+**Session Date: 2025-12-28**
 
-We have completed a major **Lego Blocks Architecture Refactoring** and hardened the test execution pipeline:
+We have completed a major **Lego Blocks Architecture Refactoring** of the Playground system and fixed critical Version History synchronization issues:
 
-#### 7.1 Critical Fixes Completed
+#### 7.1 Critical Fixes Completed (Previous Session)
 | Issue | Root Cause | Fix Applied |
 |-------|------------|-------------|
 | Infinite Redirect Loop | Middleware intercepting `/_next` assets | Added `isInternalOrStatic` exclusion filter |
@@ -162,7 +301,30 @@ We have completed a major **Lego Blocks Architecture Refactoring** and hardened 
 | Results Not Saving | DB CHECK constraint rejected `'failed'` status | Changed to `'error'` to comply with constraint |
 | UI Not Updating | Tables not in Realtime publication | Added `test_runs` and `test_results` to `supabase_realtime` |
 
-#### 7.2 Lego Blocks Refactoring (NEW)
+#### 7.2 Version History Fix (NEW - 2025-12-28)
+| Issue | Root Cause | Fix Applied |
+|-------|------------|-------------|
+| Prompt not updating after version restore | `usePlayground` state initialized once, not re-synced | Added `reloadFromServer()` function to fetch and update state from DB |
+| Badge showing old version number | Only `router.refresh()` was called, hook state stale | Now calls `await reloadFromServer()` before `router.refresh()` |
+
+**Files Modified**:
+- `hooks/use-playground.ts` - Added `reloadFromServer()` method
+- `components/playground-client.tsx` - Updated `onVersionRestored` callbacks
+
+#### 7.3 Playground Lego Blocks Refactoring (NEW - 2025-12-28)
+| Metric | Before | After |
+|--------|--------|-------|
+| `playground-client.tsx` | 565 lines, God File | 90 lines, thin orchestrator |
+| `playground/page.tsx` | 353 lines, duplicate logic | 61 lines, server wrapper |
+| Mobile/Desktop | Mixed in one file | Separate `playground-mobile.tsx`, `playground-desktop.tsx` |
+| Shared Types | None | `playground/types.ts` with `PlaygroundLayoutProps` |
+
+**New Files Created**:
+- `components/playground/playground-mobile.tsx` (~270 lines)
+- `components/playground/playground-desktop.tsx` (~290 lines)
+- `components/playground/types.ts` (~75 lines)
+
+#### 7.4 Test Suite Lego Blocks (Previous Session)
 | Metric | Before | After |
 |--------|--------|-------|
 | `use-test-suite.ts` | 279 lines, 6 responsibilities | 81 lines, composition only |
@@ -170,14 +332,21 @@ We have completed a major **Lego Blocks Architecture Refactoring** and hardened 
 | `TestRunner` Component | Smart (manages own state) | Dumb (`TestRunnerView` - props only) |
 | Testability | Low | High (pass mock props) |
 
-#### 7.3 Fixes Applied to Hooks
+#### 7.5 Fixes Applied to Hooks (Previous Session)
 - **Subscription Leak Fix**: Added `activeChannelsRef` to track all Realtime channels
 - **Duplicate Run Guard**: `isRunning` check at start of `handleRunTests`
 - **Cleanup on Unmount**: `useEffect` with `cleanupChannels()` in return
 
+### Remaining Monoliths (Optional Future Work)
+| File | Lines | Priority | Recommended Action |
+|------|-------|----------|-------------------|
+| `analytics-client.tsx` | 421 | 🟠 Medium | Extract charts into separate components |
+| `version-actions.ts` | 219 | 🟡 Low | Group by domain (version CRUD, comparison) |
+| `test-runner-actions.ts` | 213 | 🟡 Low | Already well-structured |
+
 ### Immediate Technical Priorities (The Next 3)
-1.  **Regression Analytics Dashboard**: Build a visualization in `app/projects/[id]/analytics` using `test_results` to plot pass rates over time.
-2.  **Version Comparison (Diffing)**: Implement a UI component to compare "Actual Output" of `Version A` vs `Version B` side-by-side.
+1.  **Version Comparison UI**: Connect `getVersionComparison()` action to `version-diff-viewer.tsx` for side-by-side analysis.
+2.  **Analytics Chart Extraction**: Decompose `analytics-client.tsx` into reusable chart components.
 3.  **Cleanup Diagnostic Logs**: Remove `console.log` statements from `test-runner.ts` before production deployment.
 
 ---

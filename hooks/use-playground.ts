@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { simulateChat, updateActiveVersion, savePromptVersion } from '@/app/actions'
+import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { ModelConfig } from '@/types/database'
 
@@ -161,6 +162,39 @@ export function usePlayground({
         }
     }
 
+    // Reload prompt from server (used after version restore)
+    const reloadFromServer = async () => {
+        const supabase = createClient()
+
+        const { data: project } = await supabase
+            .from('projects')
+            .select('current_version_id')
+            .eq('id', projectId)
+            .single()
+
+        if (project?.current_version_id) {
+            const { data: version } = await supabase
+                .from('prompt_versions')
+                .select('system_prompt, model_config')
+                .eq('id', project.current_version_id)
+                .single()
+
+            if (version) {
+                const newPrompt = version.system_prompt || ''
+                setSystemPrompt(newPrompt)
+                setOriginalPrompt(newPrompt)
+
+                const savedConfig = version.model_config as ModelConfig
+                setConfig({
+                    model: savedConfig?.model || 'gpt-4o-mini',
+                    temperature: savedConfig?.temperature || 0.7,
+                    max_tokens: savedConfig?.max_tokens || 1000,
+                    top_p: savedConfig?.top_p || 1.0
+                })
+            }
+        }
+    }
+
     const hasUnsavedChanges = systemPrompt !== originalPrompt
 
     return {
@@ -188,6 +222,7 @@ export function usePlayground({
         handleReset,
         handleClearChat,
         handleSaveAsNew,
+        reloadFromServer,
 
         // Router
         router
